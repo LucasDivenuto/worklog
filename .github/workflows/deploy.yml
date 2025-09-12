@@ -13,6 +13,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
       - name: Install dependencies
         working-directory: frontend
         run: npm install
@@ -21,7 +26,7 @@ jobs:
         working-directory: frontend
         run: CI=false npm run build
 
-      - name: Upload build to EC2 (Frontend)
+      - name: Deploy frontend to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_FRONTEND_HOST }}
@@ -30,7 +35,7 @@ jobs:
           source: "frontend/build/*"
           target: "/home/ubuntu/worklog_build"
 
-      - name: Deploy Frontend with Nginx
+      - name: Reload frontend with nginx
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.EC2_FRONTEND_HOST }}
@@ -61,8 +66,7 @@ jobs:
 
       - name: Build Docker image
         working-directory: backend
-        run: |
-          docker build -t backend:${{ github.sha }} .
+        run: docker build -t backend:${{ github.sha }} .
 
       - name: Log in to AWS ECR
         env:
@@ -87,4 +91,5 @@ jobs:
             sudo docker stop backend || true
             sudo docker rm backend || true
             sudo docker pull 724772062675.dkr.ecr.us-east-2.amazonaws.com/backend:${{ github.sha }}
-            sudo docker run -d --name backend -p 8080:8080 724772062675.dkr.ecr.us-east-2.amazonaws.com/backend:${{ github.sha }}
+            sudo docker run -d --restart=always --name backend -p 8080:8080 \
+              724772062675.dkr.ecr.us-east-2.amazonaws.com/backend:${{ github.sha }}
