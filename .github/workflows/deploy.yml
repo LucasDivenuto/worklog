@@ -60,10 +60,6 @@ jobs:
           java-version: "21"
           distribution: "temurin"
 
-      - name: Build JAR
-        working-directory: backend
-        run: ./mvnw clean package -DskipTests
-
       - name: Build Docker image
         working-directory: backend
         run: docker build -t backend:${{ github.sha }} .
