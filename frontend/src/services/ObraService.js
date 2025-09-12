@@ -1,56 +1,45 @@
-import axios from "axios"
-
-const OBRA_BASE_REST_API_URL = "http://backend-worklog.rustikas.com.uy:8080"
+import api from "../api";
 
 class ObraService {
+  getAllObras() {
+    return api.get("/obras");
+  }
 
-    getAllObras() {
-        return axios.get(OBRA_BASE_REST_API_URL + '/obras')
-    }
+  createObra(obra) {
+    return api.post("/obra", obra);
+  }
 
-    createObra(obra) {
-        return axios.post(OBRA_BASE_REST_API_URL + '/obra', obra)
-    }
+  getObraById(obraId) {
+    return api.get(`/obra/${obraId}`);
+  }
 
-    getObraById(obraId) {
-        return axios.get(OBRA_BASE_REST_API_URL + '/obra/' + obraId)
-    }
+  updateObra(obraId, obra) {
+    return api.put(`/obra/${obraId}`, obra);
+  }
 
-    updateObra(obraId, obra) {
-        return axios.put(OBRA_BASE_REST_API_URL + '/obra/' + obraId, obra)
-    }
+  deleteObra(obraId) {
+    return api.delete(`/obra/${obraId}`);
+  }
 
-    deleteObra(obraId) {
-        return axios.delete((OBRA_BASE_REST_API_URL + '/obra/' + obraId))
-    }
+  getObraByBPS(bps) {
+    return api.get(`/getObraByBPS/${bps}`);
+  }
 
-    getObraByBPS(bps) {
-        return axios.get(OBRA_BASE_REST_API_URL + '/getObraByBPS/' + bps)
-    }
+  getObrasActivasEntreFechas(fechaDesde, fechaHasta) {
+    return api.get("/getAllObrasByDates/", {
+      params: { fechaDesde, fechaHasta },
+    });
+  }
 
-    getObrasActivasEntreFechas(fechaDesde, fechaHasta) {
-        return axios.get(`${OBRA_BASE_REST_API_URL}/getAllObrasByDates/`, {
-            params: {
-                fechaDesde: fechaDesde,
-                fechaHasta: fechaHasta
-            }
-        });
-    }
-    
-    getObraByNombre(nombre){
-        return axios.get(OBRA_BASE_REST_API_URL + '/getObraByNombre/' + nombre)
-    }
+  getObraByNombre(nombre) {
+    return api.get(`/getObraByNombre/${nombre}`);
+  }
 
-    getObrasActivasEntreFechasyTrabajador(fechaDesde, fechaHasta, persona_id){
-        return axios.get(`${OBRA_BASE_REST_API_URL}/getAllObrasByDatesAndTrabajador/`, {
-            params: {
-                fechaDesde: fechaDesde,
-                fechaHasta: fechaHasta,
-                persona_id: persona_id
-            }
-        });
-    }
-
+  getObrasActivasEntreFechasyTrabajador(fechaDesde, fechaHasta, persona_id) {
+    return api.get("/getAllObrasByDatesAndTrabajador/", {
+      params: { fechaDesde, fechaHasta, persona_id },
+    });
+  }
 }
-// eslint-disable-next-line import/no-anonymous-default-export
-export default new ObraService()
+
+export default new ObraService();

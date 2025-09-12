@@ -1,97 +1,60 @@
-import axios from "axios"
+import api from "../api";
 
-const BASE_REST_API_URL = "http://backend-worklog.rustikas.com.uy:8080/"
-
-
-// Create an instance of Axios
-const axiosInstance = axios.create({
-    baseURL: BASE_REST_API_URL
-});
-
-// Add a response interceptor
-axiosInstance.interceptors.response.use(
-  response => response,
-  error => {
-    if (error.response && error.response.status === 404) {
-      // Suppress the console error for 404
-      console.log('Resource not found (404)');
-    }
-    return Promise.reject(error);
+class PersonaService {
+  // BASIC CRUD
+  getAllPersonas() {
+    return api.get("/personas");
   }
-);
 
-axiosInstance.interceptors.request.use(function(request){
-    const token = window.localStorage.getItem('appJornalesToken');
-    if (token) {
-        request.headers['Authorization'] = `Bearer ${token}`;
-    } else {
-        request.headers['Authorization'] = null;
-    }
-    return request;
+  createPersona(persona) {
+    return api.post("/persona", persona);
   }
-);
 
-class PersonaService{
+  getPersonaById(personaId) {
+    return api.get(`/persona/${personaId}`);
+  }
 
-    // BASIC CRUD
+  updatePersona(personaId, persona) {
+    return api.put(`/persona/${personaId}`, persona);
+  }
 
-    getAllPersonas(){
-        return axiosInstance.get(BASE_REST_API_URL + 'personas')
+  deletePersona(personaId) {
+    return api.delete(`/persona/${personaId}`);
+  }
+
+  // CUSTOM
+  getPersonaByCI(cedula) {
+    return api.get(`/persona/findByCI/${cedula}`);
+  }
+
+  getPersonaByUsername(username) {
+    return api.get(`/persona/findByUsername/${username}`);
+  }
+
+  getAllTrabajadoresActivos() {
+    return api.get("/persona/getAllTrabajadoresActivos");
+  }
+
+  getAllTrabajadoresDeObra(obraId) {
+    return api.get(`/persona/getAllTrabajadoresDeObra/${obraId}`);
+  }
+
+  getTrabajadoresDeObraPorFecha(obraId, fecha) {
+    return api.get("/persona/getTrabajadoresDeObraPorFecha/", {
+      params: { obraId, fecha },
+    });
+  }
+
+  getPersonasByNombre(nombre) {
+    return api.get(`/persona/getPersonasByNombre/${nombre}`);
+  }
+
+  getPersonaByCIoNombre(parametro) {
+    if (parametro.length > 0 && !isNaN(parseInt(parametro.charAt(0)))) {
+      return this.getPersonaByCI(parametro);
     }
-
-    createPersona(persona){
-        return axiosInstance.post(BASE_REST_API_URL + 'persona', persona)
-    }
-
-    getPersonaById(personaId){
-        return axiosInstance.get(BASE_REST_API_URL +  'persona/' + personaId)
-    }
-
-    updatePersona(personaId, persona){
-        return axiosInstance.put(BASE_REST_API_URL + 'persona/' + personaId, persona)
-    }
-
-    deletePersona(personaId){
-        return axiosInstance.delete((BASE_REST_API_URL +  'persona/' + personaId))
-    }
-
-    // CURSTOM
-
-    getPersonaByCI(cedula){
-        return axiosInstance.get(BASE_REST_API_URL + 'persona/findByCI/' + cedula)
-    }
-
-    getPersonaByUsername(username){
-        return axiosInstance.get(BASE_REST_API_URL + 'persona/findByUsername/' + username)
-    }
-
-    getAllTrabajadoresActivos(){
-        return axiosInstance.get(BASE_REST_API_URL + 'persona/getAllTrabajadoresActivos')
-    }
-
-    getAllTrabajadoresDeObra(obraId){
-        return axiosInstance.get(BASE_REST_API_URL + 'persona/getAllTrabajadoresDeObra/' + obraId)
-    }
-
-    getTrabajadoresDeObraPorFecha(obraId, fecha){
-        return axios.get(`${BASE_REST_API_URL}persona/getTrabajadoresDeObraPorFecha/`, {
-            params: {
-                obraId: obraId,
-                fecha: fecha,
-            }
-        });
-    }
-
-    getPersonasByNombre(nombre){
-        return axios.get(BASE_REST_API_URL + 'persona/getPersonasByNombre/' + nombre);
-    }
-
-    getPersonaByCIoNombre(parametro){
-        if (parametro.length > 0 && !isNaN(parseInt(parametro.charAt(0)))) {
-            return this.getPersonaByCI(parametro)
-        } 
-        return this.getPersonasByNombre(parametro)
-    }
-
+    return this.getPersonasByNombre(parametro);
+  }
 }
-export default new PersonaService
+
+export default new PersonaService();

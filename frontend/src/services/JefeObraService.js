@@ -1,32 +1,29 @@
-import axios from "axios"
+import api from "../api";
 
-const JEFE_OBRA_BASE_REST_API_URL = "http://backend-worklog.rustikas.com.uy:8080/"
+class JefeObraService {
+  getAllJefeObra() {
+    return api.get("/jefeObras");
+  }
 
-class JefeObraService{
+  createJefeObra(jefeObra) {
+    return api.post("/jefeObra", jefeObra);
+  }
 
-    getAllJefeObra(){
-        return axios.get(JEFE_OBRA_BASE_REST_API_URL + 'jefeObras')
-    }
+  getJefeObraById(jefeObraId) {
+    return api.get(`/jefeObra/${jefeObraId}`);
+  }
 
-    createJefeObra(jefeObra){
-        return axios.post(JEFE_OBRA_BASE_REST_API_URL + 'jefeObra', jefeObra)
-    }
+  updateJefeObra(jefeObraId, jefeObra) {
+    return api.put(`/jefeObra/${jefeObraId}`, jefeObra);
+  }
 
-    getJefeObraById(jefeObraId){
-        return axios.get(JEFE_OBRA_BASE_REST_API_URL +  'jefeObra/' + jefeObraId)
-    }
+  deleteJefeObra(jefeObraId) {
+    return api.delete(`/jefeObra/${jefeObraId}`);
+  }
 
-    updateJefeObra(jefeObraId, jefeObra){
-        return axios.put(JEFE_OBRA_BASE_REST_API_URL + 'jefeObra/' + jefeObraId, jefeObra)
-    }
-
-    deleteJefeObra(jefeObraId){
-        return axios.delete(JEFE_OBRA_BASE_REST_API_URL +  'jefeObra/' + jefeObraId)
-    }
-    
-    getObraByJefeId(id){
-        return axios.get(JEFE_OBRA_BASE_REST_API_URL +  'getObraByJefe/' + id)
-    }
+  getObraByJefeId(id) {
+    return api.get(`/getObraByJefe/${id}`);
+  }
 }
 
 export default new JefeObraService();

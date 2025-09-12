@@ -1,11 +1,9 @@
-import axios from "axios"
+import api from "../api";
 
-const LOGIN_BASE_REST_API_URL = "http://backend-worklog.rustikas.com.uy:8080/login"
-
-class LoginService{
-
-    iniciarSesion(credenciales){
-        return axios.post(LOGIN_BASE_REST_API_URL, credenciales)
-    }
+class LoginService {
+  iniciarSesion(credenciales) {
+    return api.post("/login", credenciales);
+  }
 }
-export default new LoginService
+
+export default new LoginService();

@@ -1,18 +1,13 @@
-import axios from "axios"
+import api from "../api";
 
-const LOGIN_BASE_REST_API_URL = "http://backend-worklog.rustikas.com.uy:8080/usuario"
+class UsuarioService {
+  isResetPassword(personaId) {
+    return api.get(`/usuario/reset-password/${personaId}`);
+  }
 
-class UsuarioService{
-
-    isResetPassword(personaId){
-        return axios.get(LOGIN_BASE_REST_API_URL + '/reset-password/' +personaId)
-    }
-
-    updatePassword(personaId, newPassword){
-        return axios.put(`${LOGIN_BASE_REST_API_URL}/new-password`, {
-            personaId: personaId,
-            newPassword: newPassword
-        });
-    }
+  updatePassword(personaId, newPassword) {
+    return api.put("/usuario/new-password", { personaId, newPassword });
+  }
 }
-export default new UsuarioService       
+
+export default new UsuarioService();

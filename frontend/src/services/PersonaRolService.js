@@ -1,37 +1,33 @@
-import axios from "axios"
+import api from "../api";
 
-const PERSONA_ROL_BASE_REST_API_URL = "http://backend-worklog.rustikas.com.uy:8080/personaRol"
+class PersonaRolService {
+  getAllPersonaRoles() {
+    return api.get("/personaRol/es");
+  }
 
+  createPersonaRol(personaRol) {
+    return api.post("/personaRol", personaRol);
+  }
 
-class PersonaRolService{
+  getPersonaRolById(personaRolId) {
+    return api.get(`/personaRol/${personaRolId}`);
+  }
 
-    getAllPersonaRoles(){
-        return axios.get(PERSONA_ROL_BASE_REST_API_URL + 'es')
-    }
+  updatePersonaRol(personaRolId, personaRol) {
+    return api.put(`/personaRol/${personaRolId}`, personaRol);
+  }
 
-    createPersonaRol(personaRol){
-        return axios.post(PERSONA_ROL_BASE_REST_API_URL, personaRol)
-    }
+  deletePersonaRol(personaRolId) {
+    return api.delete(`/personaRol/${personaRolId}`);
+  }
 
-    getPersonaRolById(personaRolId){
-        return axios.get(PERSONA_ROL_BASE_REST_API_URL +  '/' + personaRolId)
-    }
+  getPersonaRolActivoByCI(cedula) {
+    return api.get(`/personaRol/personaRolByCI/${cedula}`);
+  }
 
-    updatePersonaRol(personaRolId, personaRol){
-        return axios.put(PERSONA_ROL_BASE_REST_API_URL + '/' + personaRolId, personaRol)
-    }
-
-    deletePersonaRol(personaRolId){
-        return axios.delete((PERSONA_ROL_BASE_REST_API_URL +  '/' + personaRolId))
-    }
-    
-    getPersonaRolActivoByCI(cedula){
-        return axios.get(PERSONA_ROL_BASE_REST_API_URL + '/personaRolByCI/' + cedula)
-    }
-
-    getEsJefeObraByPersonaId(personaId){
-        return axios.get(PERSONA_ROL_BASE_REST_API_URL + '/esJefe/' + personaId)
-    }
+  getEsJefeObraByPersonaId(personaId) {
+    return api.get(`/personaRol/esJefe/${personaId}`);
+  }
 }
-// eslint-disable-next-line import/no-anonymous-default-export
+
 export default new PersonaRolService();
