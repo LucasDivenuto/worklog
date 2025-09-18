@@ -1,26 +1,25 @@
-# --------- STAGE 1: Build ---------
+# ---------- STAGE 1: Build ----------
     FROM maven:3.9.6-eclipse-temurin-21-alpine AS builder
     WORKDIR /app
     
-    # Copiar todo lo necesario para ejecutar Maven Wrapper
-    COPY mvnw .
-    COPY .mvn .mvn
+    # Copiamos solo lo necesario para cachear dependencias
     COPY pom.xml .
+    COPY mvnw .
+    COPY .mvn/ .mvn/
     
     RUN chmod +x mvnw
-    RUN ./mvnw dependency:go-offline -B
+    RUN ./mvnw dependency:go-offline -B || true
     
-    # Ahora sí copiamos el código fuente
+    # Ahora copiamos el código fuente
     COPY src ./src
     
-    # Compilar JAR
-    RUN ./mvnw clean package -DskipTests -B
+    # Compilamos
+    RUN mvn clean package -DskipTests -B
     
-    # --------- STAGE 2: Runtime ---------
+    # ---------- STAGE 2: Runtime ----------
     FROM eclipse-temurin:21-alpine
     WORKDIR /app
     
-    # Copiar el jar desde el builder
     COPY --from=builder /app/target/*.jar app.jar
     
     EXPOSE 8080
