@@ -31,3 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+target/
+.git
+.gitignore
+Dockerfile
+README.md
+.DS_Store
+__MACOSX
