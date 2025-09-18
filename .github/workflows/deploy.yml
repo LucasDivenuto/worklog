@@ -84,6 +84,9 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            aws ecr get-login-password --region us-east-2 | \
+              sudo docker login --username AWS --password-stdin 724772062675.dkr.ecr.us-east-2.amazonaws.com
+
             sudo docker stop backend || true
             sudo docker rm backend || true
             sudo docker pull 724772062675.dkr.ecr.us-east-2.amazonaws.com/backend:${{ github.sha }}
