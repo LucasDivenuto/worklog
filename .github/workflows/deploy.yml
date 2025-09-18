@@ -46,7 +46,7 @@ jobs:
             sudo cp -r /home/ubuntu/worklog_build/* /var/www/html/
             sudo systemctl reload nginx
 
-  # ---------- BACKEND ----------
+    # ---------- BACKEND ----------
   backend:
     runs-on: ubuntu-latest
     needs: frontend
@@ -77,6 +77,14 @@ jobs:
           docker tag backend:${{ github.sha }} 724772062675.dkr.ecr.us-east-2.amazonaws.com/backend:${{ github.sha }}
           docker push 724772062675.dkr.ecr.us-east-2.amazonaws.com/backend:${{ github.sha }}
 
+      - name: Get ECR login password
+        id: ecr-login
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          echo "token=$(aws ecr get-login-password --region us-east-2)" >> $GITHUB_OUTPUT
+
       - name: Deploy Backend on EC2
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -84,7 +92,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            aws ecr get-login-password --region us-east-2 | \
+            echo "${{ steps.ecr-login.outputs.token }}" | \
               sudo docker login --username AWS --password-stdin 724772062675.dkr.ecr.us-east-2.amazonaws.com
 
             sudo docker stop backend || true
