@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Docker / MySQL ###
+mysql_data/
+*.log
+*.pid
+*.sock
+*.cnf

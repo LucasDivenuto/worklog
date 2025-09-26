@@ -10,7 +10,7 @@ class JornalService {
   }
 
   createOrUpdateJornalQr(obraID) {
-    return api.post("/jornal/Qr", { obraID });
+    return api.post("/jornalQr", { obraID });
   }
 
   getJornalById(jornalId) {

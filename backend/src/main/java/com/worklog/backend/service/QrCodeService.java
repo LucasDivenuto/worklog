@@ -8,6 +8,7 @@ import com.google.zxing.common.BitMatrix;
 import com.worklog.backend.model.Obra;
 import com.worklog.backend.repository.ObraRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,9 @@ import java.io.ByteArrayOutputStream;
 public class QrCodeService {
     @Autowired
     private ObraRepository obraRepository;
+
+    @Value("${servidor.frontend}")
+    private String servidorFrontend;
 
     public byte[] generateQrCode(String text, int width, int height) throws WriterException {
         MultiFormatWriter multiFormatWriter = new MultiFormatWriter();
@@ -40,7 +44,11 @@ public class QrCodeService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
 
-
+    public Obra updateQr(Obra obra) {
+        String qrCodeUrl = servidorFrontend + "/jornalQr/" + obra.getId();
+        saveCodeQR(obra, qrCodeUrl);
+        return obraRepository.save(obra);
     }
 }

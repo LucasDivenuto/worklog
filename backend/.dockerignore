@@ -1,14 +1,26 @@
+### Build artifacts ###
 target/
-_.jar
-_.tar
-\*.zip
+*.jar
+*.tar
+*.zip
 
+### Git ###
 .git
 .gitignore
+
+### IDEs ###
 .idea
-_.iml
-_.iws
-\*.ipr
+*.iml
+*.iws
+*.ipr
 .vscode/
+
+### macOS ###
 .DS_Store
-\_\_MACOSX
+__MACOSX
+
+### Docker / MySQL ###
+mysql_data/
+
+### Otros ###
+*.log
