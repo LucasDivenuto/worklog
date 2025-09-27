@@ -26,21 +26,13 @@ jobs:
         working-directory: frontend
         run: CI=false npm run build
 
-      - name: Debug build hash
-        working-directory: frontend/build
-        run: |
-          echo "=== INDEX.HTML CONTENT ==="
-          head -n 20 index.html | grep main
-          echo "=== STATIC FILES IN JS ==="
-          ls -lh static/js
-
       - name: Deploy frontend to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_FRONTEND_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "frontend/build/**"
+          source: "frontend/build/*"
           target: "/home/ubuntu/worklog_build"
 
       - name: Reload frontend with nginx
@@ -50,9 +42,11 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # Limpiar solo la carpeta servida por NGINX
             sudo rm -rf /var/www/html/*
-            sudo rm -rf /home/ubuntu/worklog_build/*
+            # Copiar la nueva build subida por SCP
             sudo cp -r /home/ubuntu/worklog_build/* /var/www/html/
+            # Reiniciar nginx para servir los cambios
             sudo systemctl reload nginx
 
   # ---------- BACKEND ----------
