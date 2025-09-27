@@ -26,6 +26,14 @@ jobs:
         working-directory: frontend
         run: CI=false npm run build
 
+      - name: Debug build hash
+        working-directory: frontend/build
+        run: |
+          echo "=== INDEX.HTML CONTENT ==="
+          head -n 20 index.html | grep main
+          echo "=== STATIC FILES IN JS ==="
+          ls -lh static/js
+
       - name: Deploy frontend to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -46,7 +54,7 @@ jobs:
             sudo cp -r /home/ubuntu/worklog_build/* /var/www/html/
             sudo systemctl reload nginx
 
-    # ---------- BACKEND ----------
+  # ---------- BACKEND ----------
   backend:
     runs-on: ubuntu-latest
     needs: frontend
