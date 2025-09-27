@@ -32,7 +32,7 @@ jobs:
           host: ${{ secrets.EC2_FRONTEND_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "frontend/build/*"
+          source: "frontend/build/**"
           target: "/home/ubuntu/worklog_build"
 
       - name: Reload frontend with nginx
