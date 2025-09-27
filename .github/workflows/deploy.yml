@@ -51,6 +51,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             sudo rm -rf /var/www/html/*
+            sudo rm -rf /home/ubuntu/worklog_build/*
             sudo cp -r /home/ubuntu/worklog_build/* /var/www/html/
             sudo systemctl reload nginx
 
