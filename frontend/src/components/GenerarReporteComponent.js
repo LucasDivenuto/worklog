@@ -13,21 +13,26 @@ const GenerarReporteComponent = () => {
 
     const [obras, setObras] = useState([]);
     const [mensajeError, setMensajeError] = useState();
+    const [alertaSinConfirmar, setAlertaSinConfirmar] = useState(null);
     const [reporteCompleto, setReporteCompleto] = useState(false);
 
     const generarReporte = async (data) => {
         try {
+            setAlertaSinConfirmar(null);
             const updatedData = { ...data, completo: reporteCompleto };
 
-            let existsJornalesSinConfirmar = false;
-            for (const obraId of updatedData.obras) {
-                const response = await JornalService.existsJornalesSinConfirmarByObraFecha(obraId, updatedData.fechaDesde, updatedData.fechaHasta);
-                existsJornalesSinConfirmar = response.data;
-                if (existsJornalesSinConfirmar) break;
-            }
-
-            if (existsJornalesSinConfirmar) {
-                setMensajeError(`Existen jornales sin confirmar dentro de las fechas ${data.fechaDesde} al ${data.fechaHasta}.`);
+            const existeSinConfirmarResp = await JornalService.existsSinConfirmarEnFiltro(updatedData);
+            if (existeSinConfirmarResp.data) {
+                setAlertaSinConfirmar({
+                    texto: `Hay jornales sin confirmar entre las obras y trabajadores elegidos, en el período del ${data.fechaDesde} al ${data.fechaHasta}.`,
+                    filtrosBusqueda: {
+                        fechaDesde: updatedData.fechaDesde,
+                        fechaHasta: updatedData.fechaHasta,
+                        obras: updatedData.obras,
+                        personas: updatedData.personas,
+                        soloSinConfirmar: true,
+                    },
+                });
                 return;
             }
 
@@ -73,6 +78,16 @@ const GenerarReporteComponent = () => {
         setMensajeError()
     }
 
+    const irAJornalesSinConfirmar = () => {
+        if (!alertaSinConfirmar?.filtrosBusqueda) return;
+        navigate('/buscar-jornal', { state: { prefillBusquedaSinConfirmar: alertaSinConfirmar.filtrosBusqueda } });
+        setAlertaSinConfirmar(null);
+    };
+
+    const cerrarAlertaSinConfirmar = (e) => {
+        e.preventDefault();
+        setAlertaSinConfirmar(null);
+    };
 
     return (
         <div className='d-flex justify-content-center align-items-center mt-3 row'>
@@ -93,6 +108,15 @@ const GenerarReporteComponent = () => {
             </button>
             </div>
 
+            {alertaSinConfirmar && (
+                <div className="alert alert-warning alert-dismissible fade show col-lg-8 mx-auto mt-3" role="alert">
+                    <p className="mb-2">{alertaSinConfirmar.texto}</p>
+                    <button type="button" className="btn btn-primary btn-sm me-2" onClick={irAJornalesSinConfirmar}>
+                        Ver jornales sin confirmar
+                    </button>
+                    <button type="button" className="btn-close" aria-label="Cerrar" onClick={cerrarAlertaSinConfirmar} />
+                </div>
+            )}
             {mensajeError && <ErrorMessage mensajeError={mensajeError} handleAlertClose={(e) => handleAlertCloseError(e)} />}
         </div>
 

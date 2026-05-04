@@ -31,8 +31,6 @@ export const ListLastJornalesComponent = () => {
             
     }
 
-    console.log(refreshJornales)
-
     useEffect(() => {
         listarJornales()
     }, [refreshJornales])
@@ -42,7 +40,7 @@ export const ListLastJornalesComponent = () => {
             <h2 className='text-center mt-5'>Últimos registros</h2>
             {jornales.length > 0 ?
                 <div className='table-responsive mt-2'>
-                    <ContainerDatoJornalComponent adminView={isAdmin} jornales={jornales.slice(0, 30)} />
+                    <ContainerDatoJornalComponent adminView={isAdmin} jornales={jornales} pageSize={25} />
                 </div>
                 :
                 <div className='text-center'>Sin datos</div>

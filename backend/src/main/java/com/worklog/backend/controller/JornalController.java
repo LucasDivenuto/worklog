@@ -124,6 +124,11 @@ public class JornalController {
         return new ResponseEntity<>(jornales, HttpStatus.OK);
     }
 
+    @PostMapping("/jornal/existsSinConfirmarEnFiltro")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'JEFE_OBRA', 'TRABAJADOR')")
+    public ResponseEntity<Boolean> existsSinConfirmarEnFiltro(@RequestBody JornalDataRequestDTO dto) {
+        return new ResponseEntity<>(jornalService.existsJornalesSinConfirmarConFiltro(dto), HttpStatus.OK);
+    }
 
     @GetMapping("/jornal/jornalNoConfirmado/{obraId}")
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'JEFE_OBRA')")

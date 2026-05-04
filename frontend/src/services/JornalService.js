@@ -43,6 +43,10 @@ class JornalService {
     return api.post("/jornal/getJornalesByFiltros", jornalDataRequest);
   }
 
+  existsSinConfirmarEnFiltro(jornalDataRequest) {
+    return api.post("/jornal/existsSinConfirmarEnFiltro", jornalDataRequest);
+  }
+
   getJornalesSinConfirmar(obraId) {
     return api.get(`/jornal/jornalNoConfirmado/${obraId}`);
   }

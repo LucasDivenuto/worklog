@@ -19,6 +19,9 @@ public class JornalDataRequestDTO {
     @Getter
     private boolean completo;
 
+    /** Si es true, la búsqueda solo incluye jornales sin confirmar. */
+    private Boolean soloSinConfirmar;
+
     public void validateData(){
         if (fechaDesde == null || fechaDesde.isBlank())
             throw new InvalidDataException("Por favor seleccione la fecha DESDE");

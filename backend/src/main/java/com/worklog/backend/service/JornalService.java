@@ -203,7 +203,8 @@ public class JornalService {
         if(allActiveTrabajadores) personasSeleccionadas=null;
         if(allActiveObras) obrasSeleccionadas=null;
 
-        Optional<Jornal[]> jornales= jornalRepository.findJornalesByFechasObrasyPersonas(fechaDesde, fechaHasta, obrasSeleccionadas, personasSeleccionadas);
+        boolean soloSinConfirmar = Boolean.TRUE.equals(jornalDataRequest.getSoloSinConfirmar());
+        Optional<Jornal[]> jornales= jornalRepository.findJornalesByFechasObrasyPersonas(fechaDesde, fechaHasta, obrasSeleccionadas, personasSeleccionadas, soloSinConfirmar);
         if (jornales.isPresent()) {
             Jornal[] jornalesArray = jornales.get();
             if (jornalesArray.length == 0) {
@@ -215,7 +216,23 @@ public class JornalService {
         }
     }
 
-
+    @Transactional(readOnly = true)
+    public boolean existsJornalesSinConfirmarConFiltro(JornalDataRequestDTO dto) {
+        dto.validateData();
+        LocalDate fechaDesde = LocalDate.parse(dto.getFechaDesde());
+        LocalDate fechaHasta = LocalDate.parse(dto.getFechaHasta());
+        List<Long> obrasSeleccionadas = dto.getObras();
+        List<Long> personasSeleccionadas = dto.getPersonas();
+        boolean allActiveObras = obrasSeleccionadas.size() == 1 && obrasSeleccionadas.getFirst().equals(0L);
+        boolean allActiveTrabajadores = personasSeleccionadas.size() == 1 && personasSeleccionadas.getFirst().equals(0L);
+        if (allActiveTrabajadores) {
+            personasSeleccionadas = null;
+        }
+        if (allActiveObras) {
+            obrasSeleccionadas = null;
+        }
+        return jornalRepository.existsJornalesSinConfirmarEnRango(fechaDesde, fechaHasta, obrasSeleccionadas, personasSeleccionadas);
+    }
 
     @Transactional(readOnly = true)
     public List<Persona> getAllTrabajadoresDeObra(Long obraId) {

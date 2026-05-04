@@ -60,9 +60,10 @@ export const JornalesParaConfirmarComponent = ({ obra }) => {
                         <>
                             <div className='row justify-content-center px-0'>
                                 <ContainerDatoJornalComponent
-                                    jornales={jornales.slice(0, 10)}
+                                    jornales={jornales}
                                     adminView={true}
                                     confirmar={true}
+                                    pageSize={15}
                                     /* onError={handleFetchError}
                                     onSuccess={handleFetchSuccess} */
                                 />

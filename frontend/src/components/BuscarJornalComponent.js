@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import ContainerDatoJornalComponent from './functionalComponents/ContainerDatoJornalComponent';
 import JornalFinderFormComponent from "./functionalComponents/JornalFinderFormComponent";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import JornalService from '../services/JornalService';
 import ObraService from "../services/ObraService";
 import JefeObraService from '../services/JefeObraService';
@@ -14,6 +14,8 @@ const BuscarJornalComponent = ({ showTrabajadores, adminView, jefeView, workerVi
     const { personaRolLoggeado,refreshJornales, setRefreshJornales } = useAuth();
     const [filtros, setFiltros] =useState();
     const navigate = useNavigate();
+    const location = useLocation();
+    const prefillConsumidoRef = useRef(false);
 
     const fetchObrasActivasEntreFechas = async (fechaDesde, fechaHasta) => {
         try {
@@ -53,14 +55,27 @@ const BuscarJornalComponent = ({ showTrabajadores, adminView, jefeView, workerVi
     }
 
     useEffect(() => {
-        getJornalesPorFiltros(filtros)
-    }, [refreshJornales])
+        if (filtros) {
+            getJornalesPorFiltros(filtros);
+        }
+    }, [refreshJornales]);
+
+    useEffect(() => {
+        const prefill = location.state?.prefillBusquedaSinConfirmar;
+        if (!prefill || prefillConsumidoRef.current) {
+            return;
+        }
+        prefillConsumidoRef.current = true;
+        getJornalesPorFiltros(prefill);
+        navigate(location.pathname, { replace: true, state: {} });
+    }, [location.state, location.pathname, navigate]);
    
 
     const handleVolver = () => {
         setMensajeError(null)
         setJornales(null)
         setObras([])
+        prefillConsumidoRef.current = false
         navigate('/buscar-jornal');
     }
 
@@ -86,7 +101,7 @@ const BuscarJornalComponent = ({ showTrabajadores, adminView, jefeView, workerVi
                 (<div className=' row justify-content-center col-lg-9 mt-4'>
                 <h2>Resultados:</h2>
                     <div className='table-responsive mt-2 mx-auto'>
-                        <ContainerDatoJornalComponent jornales={jornales.slice(0, 10)} adminView={adminView} jefeView={jefeView} confirmar={true} />
+                        <ContainerDatoJornalComponent jornales={jornales} adminView={adminView} jefeView={jefeView} confirmar={true} pageSize={15} />
                     </div>
                     <div>
                         <div className='btn btn-secondary col-12 col-lg-2 mx-auto' onClick={handleVolver}>Volver</div>
