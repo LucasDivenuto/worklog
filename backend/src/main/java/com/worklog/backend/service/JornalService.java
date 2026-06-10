@@ -2,6 +2,7 @@ package com.worklog.backend.service;
 
 import com.worklog.backend.dto.DetalleJornalGeneralDTO;
 import com.worklog.backend.dto.JornalDataRequestDTO;
+import com.worklog.backend.dto.JornalMarcajeResponseDTO;
 import com.worklog.backend.exception.InvalidDataException;
 import com.worklog.backend.exception.JornalNotFoundException;
 import com.worklog.backend.exception.JornalNotSavedException;
@@ -47,31 +48,156 @@ public class JornalService {
         return jornalRepository.save(newJornal);
     }
 
-    public Jornal saveJornalQr(Long obraID) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof AnonymousAuthenticationToken)
-            throw new InvalidDataException("No se puede registrar un jornal sin estar autentificado");
-
-        String currentUserName = authentication.getName();
-        Persona persona = personaService.findPersonaByUsername(currentUserName);
+    @Transactional
+    public JornalMarcajeResponseDTO getEstadoMarcajeQr(Long obraID) {
+        Persona persona = getPersonaAutenticada();
         Obra obra = obraService.getObraById(obraID);
-        LocalDate currentDate = LocalDate.now();
-        Optional<Jornal[]> jornalesComunesHoy = jornalRepository.findByFechaJornalAndObraAndPersonaAndTipoJornal(currentDate, obra, persona, new TipoJornal(TipoJornal.ID_JORNAL_COMUN));
-        if (jornalesComunesHoy.isPresent()) {
-            Jornal[] jornales = jornalesComunesHoy.get();
-            //Validación por seguidad (que no se empiecen a agregar jornales infinitamente)
-            if (jornales.length > 4) { throw new InvalidDataException("No se pudo completar la solicitud. Por favor contacta a tu Administrador");};
-            for (Jornal jornal : jornales) {
-                if (jornal.getHoraFin() == null) {
-                    return nuevaSalidaDeObra(jornal);
-                }
-            }
-            return nuevoIngresoAObra(persona, obra);
-        } else {
-            //Insertar un nuevo ingreso (nuevo jornal)
-            return nuevoIngresoAObra(persona, obra);
+        Jornal jornalAbierto = findJornalComunAbiertoHoy(obra, persona);
+        if (jornalAbierto == null) {
+            return buildMarcajeResponse(null, obra, EstadoMarcajeQr.SIN_JORNAL);
+        }
+        return buildMarcajeResponse(jornalAbierto, obra, resolveEstadoMarcaje(jornalAbierto));
+    }
+
+    @Transactional
+    public JornalMarcajeResponseDTO saveJornalQr(Long obraID, String accionStr) {
+        Persona persona = getPersonaAutenticada();
+        Obra obra = obraService.getObraById(obraID);
+        AccionMarcajeQr accion = AccionMarcajeQr.fromString(accionStr);
+
+        Jornal jornalAbierto = findJornalComunAbiertoHoy(obra, persona);
+        if (accion == null) {
+            accion = jornalAbierto == null ? AccionMarcajeQr.ENTRADA : AccionMarcajeQr.SALIDA_JORNADA;
         }
 
+        Jornal resultado = switch (accion) {
+            case ENTRADA -> {
+                if (jornalAbierto != null) {
+                    throw new InvalidDataException("Ya existe un jornal abierto para hoy en esta obra.");
+                }
+                yield nuevoIngresoAObra(persona, obra);
+            }
+            case INICIO_DESCANSO -> marcarInicioDescanso(requireJornalAbierto(jornalAbierto));
+            case FIN_DESCANSO -> marcarFinDescanso(requireJornalAbierto(jornalAbierto));
+            case SALIDA_JORNADA -> marcarSalidaJornada(requireJornalAbierto(jornalAbierto));
+        };
+
+        EstadoMarcajeQr estado = resolveEstadoMarcaje(resultado);
+        return buildMarcajeResponse(resultado, obra, estado);
+    }
+
+    private Persona getPersonaAutenticada() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof AnonymousAuthenticationToken) {
+            throw new InvalidDataException("No se puede registrar un jornal sin estar autentificado");
+        }
+        return personaService.findPersonaByUsername(authentication.getName());
+    }
+
+    private Jornal findJornalComunAbiertoHoy(Obra obra, Persona persona) {
+        LocalDate currentDate = LocalDate.now();
+        Optional<Jornal[]> jornalesComunesHoy = jornalRepository.findByFechaJornalAndObraAndPersonaAndTipoJornal(
+                currentDate, obra, persona, new TipoJornal(TipoJornal.ID_JORNAL_COMUN));
+        if (jornalesComunesHoy.isEmpty()) {
+            return null;
+        }
+        Jornal[] jornales = jornalesComunesHoy.get();
+        if (jornales.length > 4) {
+            throw new InvalidDataException("No se pudo completar la solicitud. Por favor contacta a tu Administrador");
+        }
+        for (Jornal jornal : jornales) {
+            if (jornal.getHoraFin() == null) {
+                return jornal;
+            }
+        }
+        return null;
+    }
+
+    private Jornal requireJornalAbierto(Jornal jornal) {
+        if (jornal == null) {
+            throw new InvalidDataException("No hay un jornal abierto para registrar esta acción.");
+        }
+        return jornal;
+    }
+
+    private EstadoMarcajeQr resolveEstadoMarcaje(Jornal jornal) {
+        if (jornal == null) {
+            return EstadoMarcajeQr.SIN_JORNAL;
+        }
+        if (jornal.getHoraFin() != null) {
+            return EstadoMarcajeQr.CERRADO;
+        }
+        if (jornal.getHoraInicioDescanso() != null && jornal.getHoraFinDescanso() == null) {
+            return EstadoMarcajeQr.EN_DESCANSO;
+        }
+        return EstadoMarcajeQr.TRABAJANDO;
+    }
+
+    private List<String> accionesPermitidas(EstadoMarcajeQr estado, Jornal jornal) {
+        return switch (estado) {
+            case SIN_JORNAL, CERRADO -> List.of(AccionMarcajeQr.ENTRADA.name());
+            case TRABAJANDO -> {
+                if (jornal != null && jornal.getHoraInicioDescanso() != null && jornal.getHoraFinDescanso() != null) {
+                    yield List.of(AccionMarcajeQr.SALIDA_JORNADA.name());
+                }
+                yield List.of(
+                        AccionMarcajeQr.INICIO_DESCANSO.name(),
+                        AccionMarcajeQr.SALIDA_JORNADA.name());
+            }
+            case EN_DESCANSO -> List.of(AccionMarcajeQr.FIN_DESCANSO.name());
+        };
+    }
+
+    private JornalMarcajeResponseDTO buildMarcajeResponse(Jornal jornal, Obra obra, EstadoMarcajeQr estado) {
+        String nombreObra = jornal != null && jornal.getObra() != null ? jornal.getObra().getNombre() : obra.getNombre();
+        return new JornalMarcajeResponseDTO(jornal, estado, accionesPermitidas(estado, jornal), nombreObra);
+    }
+
+    private void validarAccionPermitida(Jornal jornal, AccionMarcajeQr accion) {
+        EstadoMarcajeQr estado = resolveEstadoMarcaje(jornal);
+        List<String> permitidas = accionesPermitidas(estado, jornal);
+        if (!permitidas.contains(accion.name())) {
+            throw new InvalidDataException("La acción " + accion.name() + " no está permitida en el estado actual.");
+        }
+    }
+
+    private Jornal marcarInicioDescanso(Jornal jornal) {
+        validarAccionPermitida(jornal, AccionMarcajeQr.INICIO_DESCANSO);
+        if (jornal.getHoraInicioDescanso() != null) {
+            throw new InvalidDataException("El descanso ya fue iniciado.");
+        }
+        Timestamp now = new Timestamp(new Date().getTime());
+        if (DateTimeUtil.isTimeStampAfterNow(now)) {
+            throw new InvalidDataException("No se puede marcar descanso con horario a futuro.");
+        }
+        jornal.setHoraInicioDescanso(now);
+        validacionPersonal(jornal);
+        return jornalRepository.save(jornal);
+    }
+
+    private Jornal marcarFinDescanso(Jornal jornal) {
+        validarAccionPermitida(jornal, AccionMarcajeQr.FIN_DESCANSO);
+        if (jornal.getHoraInicioDescanso() == null) {
+            throw new InvalidDataException("Debe iniciar el descanso antes de finalizarlo.");
+        }
+        if (jornal.getHoraFinDescanso() != null) {
+            throw new InvalidDataException("El descanso ya fue finalizado.");
+        }
+        Timestamp now = new Timestamp(new Date().getTime());
+        if (!DateTimeUtil.isValidBreakRange(jornal.getHoraInicioDescanso(), now)) {
+            throw new InvalidDataException("La hora de fin de descanso debe ser al menos 25 minutos después del inicio.");
+        }
+        jornal.setHoraFinDescanso(now);
+        validacionPersonal(jornal);
+        return jornalRepository.save(jornal);
+    }
+
+    private Jornal marcarSalidaJornada(Jornal jornal) {
+        validarAccionPermitida(jornal, AccionMarcajeQr.SALIDA_JORNADA);
+        if (jornal.getHoraInicioDescanso() != null && jornal.getHoraFinDescanso() == null) {
+            throw new InvalidDataException("Debe finalizar el descanso antes de cerrar la jornada.");
+        }
+        return nuevaSalidaDeObra(jornal);
     }
 
     private Jornal nuevoIngresoAObra (Persona persona, Obra obra) {
@@ -81,6 +207,8 @@ public class JornalService {
         newJornal.setPersona(persona);
         newJornal.setFechaJornal(LocalDate.now());
         newJornal.setHoraComienzo(new Timestamp(new Date().getTime()));
+        newJornal.setHoraInicioDescanso(null);
+        newJornal.setHoraFinDescanso(null);
         newJornal.setModificado(false);
         newJornal.setConfirmado(false);
         newJornal.setTipoJornal(tipoJornal);
@@ -120,6 +248,8 @@ public class JornalService {
                     jornal.setFechaJornal(newJornal.getFechaJornal());
                     jornal.setHoraComienzo(newJornal.getHoraComienzo());
                     jornal.setHoraFin(newJornal.getHoraFin());
+                    jornal.setHoraInicioDescanso(newJornal.getHoraInicioDescanso());
+                    jornal.setHoraFinDescanso(newJornal.getHoraFinDescanso());
                     jornal.setModificado(true);
                     jornal.setTipoJornal(newJornal.getTipoJornal());
                     jornal.setConfirmado(newJornal.getConfirmado());
@@ -287,6 +417,8 @@ public class JornalService {
         jornalAnterior.setFechaJornal(datosAnteriores.getFechaJornal());
         jornalAnterior.setHoraComienzo(datosAnteriores.getHoraComienzo());
         jornalAnterior.setHoraFin(datosAnteriores.getHoraFin());
+        jornalAnterior.setHoraInicioDescanso(datosAnteriores.getHoraInicioDescanso());
+        jornalAnterior.setHoraFinDescanso(datosAnteriores.getHoraFinDescanso());
         jornalAnterior.setModificado(datosAnteriores.getModificado());
         jornalAnterior.setConfirmado(datosAnteriores.getConfirmado());
         jornalAnterior.setTipoJornal(datosAnteriores.getTipoJornal());
@@ -324,6 +456,7 @@ public class JornalService {
             if (!DateTimeUtil.isValidTimeRange(jornal.getHoraComienzo(), jornal.getHoraFin())) {
                 throw new InvalidDataException("La hora de fin debe ser al menos 30 minutos más tarde que la hora de comienzo");
             }
+            validarDescanso(jornal);
             ;
             //Los jornales COMUNES no pueden marcarse en fecha posterior a hoy
             if (jornal.getTipoJornal().getId().equals(TipoJornal.ID_JORNAL_COMUN)) {
@@ -333,7 +466,8 @@ public class JornalService {
                     }
                 }
 
-                if(DateTimeUtil.isTimeStampAfterNow(jornal.getHoraComienzo()) || DateTimeUtil.isTimeStampAfterNow(jornal.getHoraFin())){
+                if(DateTimeUtil.isTimeStampAfterNow(jornal.getHoraComienzo()) || DateTimeUtil.isTimeStampAfterNow(jornal.getHoraFin()) ||
+                        DateTimeUtil.isTimeStampAfterNow(jornal.getHoraInicioDescanso()) || DateTimeUtil.isTimeStampAfterNow(jornal.getHoraFinDescanso())){
                     throw new InvalidDataException("El jornal no puede ser marcado con horarios a futuro");
                 }
             }
@@ -351,6 +485,23 @@ public class JornalService {
                 }
             }
 
+        }
+
+        private void validarDescanso(Jornal jornal) {
+            Timestamp inicioDescanso = jornal.getHoraInicioDescanso();
+            Timestamp finDescanso = jornal.getHoraFinDescanso();
+            if (inicioDescanso == null && finDescanso == null) {
+                return;
+            }
+            if (inicioDescanso == null || finDescanso == null) {
+                throw new InvalidDataException("Debe ingresar inicio y fin de descanso, o dejar ambos vacíos.");
+            }
+            if (!DateTimeUtil.isValidBreakRange(inicioDescanso, finDescanso)) {
+                throw new InvalidDataException("La hora de fin de descanso debe ser al menos 25 minutos después del inicio.");
+            }
+            if (inicioDescanso.before(jornal.getHoraComienzo()) || finDescanso.after(jornal.getHoraFin())) {
+                throw new InvalidDataException("El descanso debe estar dentro del horario del jornal.");
+            }
         }
 
         private void validacionPersonal (Jornal jornal){
@@ -428,6 +579,17 @@ public class JornalService {
             jornal.setHoraComienzo(horaComienzo);
             jornal.setHoraFin(horaFin);
 
+            if (jornal.getHoraInicioDescanso() != null) {
+                ZonedDateTime zonedHoraInicioDescanso = jornal.getHoraInicioDescanso().toLocalDateTime().atZone(uruguayZoneId);
+                ZonedDateTime utcHoraInicioDescanso = zonedHoraInicioDescanso.withZoneSameInstant(ZoneId.of("UTC"));
+                jornal.setHoraInicioDescanso(Timestamp.valueOf(utcHoraInicioDescanso.toLocalDateTime()));
+            }
+            if (jornal.getHoraFinDescanso() != null) {
+                ZonedDateTime zonedHoraFinDescanso = jornal.getHoraFinDescanso().toLocalDateTime().atZone(uruguayZoneId);
+                ZonedDateTime utcHoraFinDescanso = zonedHoraFinDescanso.withZoneSameInstant(ZoneId.of("UTC"));
+                jornal.setHoraFinDescanso(Timestamp.valueOf(utcHoraFinDescanso.toLocalDateTime()));
+            }
+
         }
 
 
@@ -498,7 +660,7 @@ public class JornalService {
                 double horasExtrasDia = 0;
 
                 for (Jornal jornal : jornalesDelDia) {
-                    double horas = DateTimeUtil.calculateHoursDifference(jornal.getHoraComienzo(), jornal.getHoraFin());
+                    double horas = DateTimeUtil.calculateWorkedHours(jornal);
                     Long tipoId = jornal.getTipoJornal().getId();
 
                     if (tipoId.equals(TipoJornal.ID_JORNAL_COMUN)) {
@@ -586,9 +748,7 @@ public class JornalService {
     private double calcularTotalHoras (List<Jornal> jornales) {
         double total=0;
         for(Jornal j: jornales){
-            if(j.getHoraComienzo()!=null & j.getHoraFin()!=null){ //Para que no de NullPointer si está sin terminar
-                total+= DateTimeUtil.calculateHoursDifference(j.getHoraComienzo(),j.getHoraFin());
-            }
+            total+= DateTimeUtil.calculateWorkedHours(j);
         }
         return total;
     }

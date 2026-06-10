@@ -9,8 +9,12 @@ class JornalService {
     return api.post("/jornal", jornal);
   }
 
-  createOrUpdateJornalQr(obraID) {
-    return api.post("/jornalQr", { obraID });
+  getEstadoMarcaje(obraId) {
+    return api.get(`/jornal/estadoMarcaje/${obraId}`);
+  }
+
+  createOrUpdateJornalQr(obraID, accion) {
+    return api.post("/jornalQr", { obraID, accion });
   }
 
   getJornalById(jornalId) {
@@ -73,7 +77,9 @@ class JornalService {
     horaFinUnformatted,
     tipoJornal,
     confirmado,
-    modificado
+    modificado,
+    horaInicioDescansoUnformatted,
+    horaFinDescansoUnformatted
   ) {
     if (!fechaJornal) throw new Error("La fecha no puede ser nula");
     if (!horaComienzoUnformatted)
@@ -85,6 +91,33 @@ class JornalService {
 
     const horaComienzoFormatted = `${fechaJornal}T${horaComienzoUnformatted}`;
     const horaFinFormatted = `${fechaJornal}T${horaFinUnformatted}`;
+    const tieneInicioDescanso = Boolean(horaInicioDescansoUnformatted);
+    const tieneFinDescanso = Boolean(horaFinDescansoUnformatted);
+    if (tieneInicioDescanso !== tieneFinDescanso) {
+      throw new Error("Debes ingresar inicio y fin de descanso, o dejar ambos vacíos");
+    }
+    const toMinutes = (time) => {
+      const [hours, minutes] = time.split(":").map(Number);
+      return hours * 60 + minutes;
+    };
+    if (tieneInicioDescanso && horaInicioDescansoUnformatted < horaComienzoUnformatted) {
+      throw new Error("El descanso no puede iniciar antes de la hora de comienzo");
+    }
+    if (tieneFinDescanso && horaFinDescansoUnformatted > horaFinUnformatted) {
+      throw new Error("El descanso no puede finalizar después de la hora de fin");
+    }
+    if (
+      tieneInicioDescanso &&
+      toMinutes(horaFinDescansoUnformatted) - toMinutes(horaInicioDescansoUnformatted) < 25
+    ) {
+      throw new Error("El descanso debe durar al menos 25 minutos");
+    }
+    const horaInicioDescansoFormatted = tieneInicioDescanso
+      ? `${fechaJornal}T${horaInicioDescansoUnformatted}`
+      : null;
+    const horaFinDescansoFormatted = tieneFinDescanso
+      ? `${fechaJornal}T${horaFinDescansoUnformatted}`
+      : null;
 
     const jornal = {
       persona,
@@ -92,6 +125,8 @@ class JornalService {
       fechaJornal,
       horaComienzo: horaComienzoFormatted,
       horaFin: horaFinFormatted,
+      horaInicioDescanso: horaInicioDescansoFormatted,
+      horaFinDescanso: horaFinDescansoFormatted,
       modificado: false,
       tipoJornal,
       confirmado: true,

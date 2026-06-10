@@ -9,6 +9,7 @@ jobs:
   # ---------- FRONTEND ----------
   frontend:
     runs-on: ubuntu-latest
+    needs: backend
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -53,7 +54,6 @@ jobs:
   # ---------- BACKEND ----------
   backend:
     runs-on: ubuntu-latest
-    needs: frontend
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -81,6 +81,49 @@ jobs:
           docker tag backend:${{ github.sha }} 724772062675.dkr.ecr.us-east-2.amazonaws.com/backend:${{ github.sha }}
           docker push 724772062675.dkr.ecr.us-east-2.amazonaws.com/backend:${{ github.sha }}
 
+      - name: Copy migration SQL files to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_BACKEND_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "backend/db/migration/"
+          target: "/home/ubuntu/worklog_migrations/sql"
+          strip_components: 3
+
+      - name: Copy migration runner script to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_BACKEND_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "backend/scripts/run-migrations.sh"
+          target: "/home/ubuntu/worklog_migrations"
+          strip_components: 2
+
+      - name: Run database migrations on RDS
+        uses: appleboy/ssh-action@v0.1.10
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        with:
+          host: ${{ secrets.EC2_BACKEND_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: DB_URL,DB_USERNAME,DB_PASSWORD
+          script: |
+            set -e
+            sudo apt-get update -qq
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq mysql-client \
+              || sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq default-mysql-client \
+              || true
+            chmod +x /home/ubuntu/worklog_migrations/run-migrations.sh
+            export DB_URL="${DB_URL}"
+            export DB_USERNAME="${DB_USERNAME}"
+            export DB_PASSWORD="${DB_PASSWORD}"
+            bash /home/ubuntu/worklog_migrations/run-migrations.sh /home/ubuntu/worklog_migrations/sql
+
       - name: Get ECR login password
         id: ecr-login
         env:
@@ -91,10 +134,15 @@ jobs:
 
       - name: Deploy Backend on EC2
         uses: appleboy/ssh-action@v0.1.10
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         with:
           host: ${{ secrets.EC2_BACKEND_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
+          envs: DB_URL,DB_USERNAME,DB_PASSWORD
           script: |
             echo "${{ steps.ecr-login.outputs.token }}" | \
               sudo docker login --username AWS --password-stdin 724772062675.dkr.ecr.us-east-2.amazonaws.com
@@ -103,4 +151,7 @@ jobs:
             sudo docker rm backend || true
             sudo docker pull 724772062675.dkr.ecr.us-east-2.amazonaws.com/backend:${{ github.sha }}
             sudo docker run -d --restart=always --name backend -p 8080:8080 \
+              -e DB_URL="${DB_URL}" \
+              -e DB_USERNAME="${DB_USERNAME}" \
+              -e DB_PASSWORD="${DB_PASSWORD}" \
               724772062675.dkr.ecr.us-east-2.amazonaws.com/backend:${{ github.sha }}

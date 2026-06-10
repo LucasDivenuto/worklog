@@ -139,6 +139,22 @@ public class ModificacionService {
             nuevaModificacion.setValorActual(datosNuevos.getHoraFin().toString());
             modificacionRepository.save(nuevaModificacion);
         }
+        registrarCambioNullable(
+                datosNuevos,
+                persona,
+                motivo,
+                Modificacion.CAMPO_HORA_INICIO_DESCANSO,
+                datosAnteriores.getHoraInicioDescanso(),
+                datosNuevos.getHoraInicioDescanso(),
+                "Sin inicio de descanso");
+        registrarCambioNullable(
+                datosNuevos,
+                persona,
+                motivo,
+                Modificacion.CAMPO_HORA_FIN_DESCANSO,
+                datosAnteriores.getHoraFinDescanso(),
+                datosNuevos.getHoraFinDescanso(),
+                "Sin fin de descanso");
         if(!(Objects.equals(datosAnteriores.getObra().getId(), datosNuevos.getObra().getId()))){
             Modificacion nuevaModificacion = new Modificacion();
             nuevaModificacion.setJornal(datosNuevos);
@@ -163,6 +179,22 @@ public class ModificacionService {
             nuevaModificacion.setValorActual("JORNAL ELIMINADO");
             modificacionRepository.save(nuevaModificacion);
         }*/
+    }
+
+    private void registrarCambioNullable(Jornal jornal, Persona responsable, String motivo, String campo,
+                                         Object valorAnterior, Object valorActual, String textoSinValor) {
+        if (Objects.equals(valorAnterior, valorActual)) {
+            return;
+        }
+        Modificacion nuevaModificacion = new Modificacion();
+        nuevaModificacion.setJornal(jornal);
+        nuevaModificacion.setResponsable(responsable);
+        nuevaModificacion.setMotivo(motivo);
+        nuevaModificacion.setFechaModificacion(new Timestamp(new Date().getTime()));
+        nuevaModificacion.setCampoModificado(campo);
+        nuevaModificacion.setValorAnterior(valorAnterior == null ? textoSinValor : valorAnterior.toString());
+        nuevaModificacion.setValorActual(valorActual == null ? textoSinValor : valorActual.toString());
+        modificacionRepository.save(nuevaModificacion);
     }
 
     public List<Modificacion> getModificacionesByFechasAndObras(LocalDate fechaDesde, LocalDate fechaHasta, List<Long> obraIds ){

@@ -18,7 +18,7 @@ const ContainerDatoPersonaComponent = ({ personas, minimalData, handleRowClick }
             <tbody>
                 {isAnArray ? (
                     personas.map(p =>
-                        <DatoPersonaComponent persona={p} minimalData={minimalData} handleRowClick={handleRowClick} />
+                        <DatoPersonaComponent key={p.id} persona={p} minimalData={minimalData} handleRowClick={handleRowClick} />
                     ))
                     :
                     (

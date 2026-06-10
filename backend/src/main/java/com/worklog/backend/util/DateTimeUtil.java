@@ -61,6 +61,15 @@ public class DateTimeUtil {
         return differenceInMinutes >= 30; // There must be at least a 30-minute difference
     }
 
+    public static boolean isValidBreakRange(Timestamp start, Timestamp end) {
+        if (start.after(end)) {
+            return false;
+        }
+
+        long differenceInMinutes = Duration.between(start.toInstant(), end.toInstant()).toMinutes();
+        return differenceInMinutes >= 25;
+    }
+
 
     public static boolean isBeforeToday(LocalDate date) {
         LocalDate today = LocalDate.now(ZoneId.systemDefault());
@@ -215,12 +224,29 @@ public class DateTimeUtil {
         return duration.toMinutes() / 60.0; // Convert to hours with decimal
     }
 
+    /**
+     * Horas efectivamente trabajadas en un jornal, restando el intervalo de descanso si está completo.
+     */
+    public static double calculateWorkedHours(com.worklog.backend.model.Jornal jornal) {
+        if (jornal == null || jornal.getHoraComienzo() == null || jornal.getHoraFin() == null) {
+            return 0;
+        }
+        double total = calculateHoursDifference(jornal.getHoraComienzo(), jornal.getHoraFin());
+        if (jornal.getHoraInicioDescanso() != null && jornal.getHoraFinDescanso() != null) {
+            total -= calculateHoursDifference(jornal.getHoraInicioDescanso(), jornal.getHoraFinDescanso());
+        }
+        return Math.max(0, total);
+    }
+
     public static void areDatesWithinSixMonths(LocalDate date1, LocalDate date2) {
         long monthsBetween = ChronoUnit.MONTHS.between(date1, date2);
         if(Math.abs(monthsBetween) >6) throw new InvalidDataException("No se pueden seleccionar fechas con un rango mayor a 6 meses");
     }
 
     public static boolean isTimeStampAfterNow(Timestamp timestamp){
+        if (timestamp == null) {
+            return false;
+        }
        // Get the current time truncated to the minute
         LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
 

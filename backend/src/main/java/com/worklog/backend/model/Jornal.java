@@ -31,6 +31,12 @@ public class Jornal {
     @Column(name = "hora_fin", length = 19)
     private Timestamp horaFin;
 
+    @Column(name = "hora_inicio_descanso", length = 19)
+    private Timestamp horaInicioDescanso;
+
+    @Column(name = "hora_fin_descanso", length = 19)
+    private Timestamp horaFinDescanso;
+
     @Column(name = "modificado", nullable = false)
     private Boolean modificado;
 
@@ -85,6 +91,22 @@ public class Jornal {
     }
 
     public void setHoraFin(Timestamp horaFin) { this.horaFin = horaFin; }
+
+    public Timestamp getHoraInicioDescanso() {
+        return horaInicioDescanso;
+    }
+
+    public void setHoraInicioDescanso(Timestamp horaInicioDescanso) {
+        this.horaInicioDescanso = horaInicioDescanso;
+    }
+
+    public Timestamp getHoraFinDescanso() {
+        return horaFinDescanso;
+    }
+
+    public void setHoraFinDescanso(Timestamp horaFinDescanso) {
+        this.horaFinDescanso = horaFinDescanso;
+    }
 
     public Boolean getModificado() { return modificado; }
 

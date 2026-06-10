@@ -70,6 +70,8 @@ const ContainerDatoJornalComponent = ({ jornales, adminView, jefeView, confirmar
                     <th className="text-center">Fecha</th>
                     <th className="text-center">Obra</th>
                     <th className="text-center">Ingreso</th>
+                    <th className="text-center">Inicio descanso</th>
+                    <th className="text-center">Fin descanso</th>
                     <th className="text-center">Salida</th>
                     {(adminView || jefeView) && (<th className="text-center">Confirmado</th>)}
                     {(adminView || jefeView) && (<th className="text-center">Acciones</th>)}
@@ -144,7 +146,6 @@ const ContainerDatoJornalComponent = ({ jornales, adminView, jefeView, confirmar
 };
 
 export default ContainerDatoJornalComponent;
-
 
 
 

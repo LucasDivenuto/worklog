@@ -264,9 +264,7 @@ public class ReporteService {
     private double calcularTotalHoras (List<Jornal> jornales) {
         double total=0;
         for(Jornal j: jornales){
-            if(j.getHoraComienzo()!=null & j.getHoraFin()!=null){ //Para que no de NullPointer si está sin terminar
-                total+= DateTimeUtil.calculateHoursDifference(j.getHoraComienzo(),j.getHoraFin());
-            }
+            total += DateTimeUtil.calculateWorkedHours(j);
         }
         return total;
     }
