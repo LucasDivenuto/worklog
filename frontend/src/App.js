@@ -16,19 +16,33 @@ import TrabajadorRoutes from "./routes/TrabajadorRoutes";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+const APP_BUILD_ID = process.env.REACT_APP_BUILD_ID || "local";
+const APP_BUILD_STORAGE_KEY = "worklogAppBuildId";
+
 function MainApp() {
-  const { personaRolLoggeado } = useAuth();
+  const { personaRolLoggeado, setPersonaRolLoggeado } = useAuth();
   const location = useLocation();
   const isChangePasswordPage = location.pathname.includes("/resetpassword/");
 
   useEffect(() => {
+    const storedBuildId = window.localStorage.getItem(APP_BUILD_STORAGE_KEY);
+    if (storedBuildId !== APP_BUILD_ID) {
+      if (location.pathname.startsWith("/jornalQr/")) {
+        window.sessionStorage.setItem("postLoginRedirect", location.pathname);
+      }
+      window.localStorage.removeItem("appJornalesToken");
+      window.localStorage.removeItem("personaRolLoggeado");
+      setPersonaRolLoggeado(null);
+    }
+    window.localStorage.setItem(APP_BUILD_STORAGE_KEY, APP_BUILD_ID);
+
     if (
       location.pathname.startsWith("/jornalQr/") &&
       (window.localStorage.getItem("appJornalesToken") === null || !isValidToken())
     ) {
       window.sessionStorage.setItem("postLoginRedirect", location.pathname);
     }
-  }, [location.pathname]);
+  }, [location.pathname, setPersonaRolLoggeado]);
 
   const renderRoutes = () => {
     switch (personaRolLoggeado.personaRol.rol.rol) {
