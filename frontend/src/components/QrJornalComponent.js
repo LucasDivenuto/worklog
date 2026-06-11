@@ -29,6 +29,7 @@ export const QrJornalComponent = () => {
     const [estadoMarcaje, setEstadoMarcaje] = useState(null);
     const [accionesPermitidas, setAccionesPermitidas] = useState([]);
     const [obraNombre, setObraNombre] = useState('');
+    const [errorCarga, setErrorCarga] = useState('');
 
     const cargarEstado = useCallback(() => {
         if (!obraID) {
@@ -36,6 +37,7 @@ export const QrJornalComponent = () => {
             return;
         }
         setLoading(true);
+        setErrorCarga('');
         JornalService.getEstadoMarcaje(obraID)
             .then((res) => {
                 setEstadoMarcaje(res.data.estadoMarcaje);
@@ -48,10 +50,11 @@ export const QrJornalComponent = () => {
             })
             .catch((error) => {
                 const msg = error.response?.data || 'No se pudo cargar el estado del jornal';
-                Swal.fire({ title: 'Error', text: msg, icon: 'error' }).then(() => navigate('/'));
+                setErrorCarga(msg);
+                Swal.fire({ title: 'Error', text: msg, icon: 'error' });
             })
             .finally(() => setLoading(false));
-    }, [obraID, navigate]);
+    }, [obraID]);
 
     useEffect(() => {
         cargarEstado();
@@ -121,24 +124,35 @@ export const QrJornalComponent = () => {
                         <p className="my-4">Cargando...</p>
                     ) : (
                         <>
-                            <p className="mb-4">
-                                {estadoMarcaje === 'SIN_JORNAL' && 'Seleccioná cómo registrar tu jornada.'}
-                                {estadoMarcaje === 'TRABAJANDO' && 'Estás en jornada. ¿Qué querés registrar?'}
-                                {estadoMarcaje === 'EN_DESCANSO' && 'Estás en descanso.'}
-                            </p>
-                            <div className="d-grid gap-2">
-                                {accionesPermitidas.map((accion) => (
-                                    <button
-                                        key={accion}
-                                        type="button"
-                                        className={`btn ${accion === 'SALIDA_JORNADA' ? 'btn-danger' : 'btn-primary'}`}
-                                        disabled={submitting}
-                                        onClick={() => ejecutarAccion(accion)}
-                                    >
-                                        {ACCION_LABELS[accion] || accion}
+                            {errorCarga ? (
+                                <>
+                                    <p className="text-danger mb-4">{errorCarga}</p>
+                                    <button type="button" className="btn btn-primary" onClick={cargarEstado}>
+                                        Reintentar
                                     </button>
-                                ))}
-                            </div>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="mb-4">
+                                        {estadoMarcaje === 'SIN_JORNAL' && 'Seleccioná cómo registrar tu jornada.'}
+                                        {estadoMarcaje === 'TRABAJANDO' && 'Estás en jornada. ¿Qué querés registrar?'}
+                                        {estadoMarcaje === 'EN_DESCANSO' && 'Estás en descanso.'}
+                                    </p>
+                                    <div className="d-grid gap-2">
+                                        {accionesPermitidas.map((accion) => (
+                                            <button
+                                                key={accion}
+                                                type="button"
+                                                className={`btn ${accion === 'SALIDA_JORNADA' ? 'btn-danger' : 'btn-primary'}`}
+                                                disabled={submitting}
+                                                onClick={() => ejecutarAccion(accion)}
+                                            >
+                                                {ACCION_LABELS[accion] || accion}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
                         </>
                     )}
 

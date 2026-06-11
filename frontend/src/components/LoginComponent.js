@@ -3,7 +3,7 @@ import LoginService from '../services/LoginService';
 import PersonaService from '../services/PersonaService';
 import UsuarioService from '../services/UsuarioService';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 
 const LoginComponent = () => {
@@ -15,6 +15,7 @@ const LoginComponent = () => {
 
 
     const navigate = useNavigate();
+    const location = useLocation();
     //const mostrarMenu = event => navigate('/', { replace: true });
 
     const intentarLogin = (e) => {
@@ -29,7 +30,8 @@ const LoginComponent = () => {
             if (reset.data) {
                 navigate(`/resetpassword/${persona.id}`)
             } else {
-                navigate('/home');
+                const targetPath = location.pathname && location.pathname !== '/' ? location.pathname : '/home';
+                navigate(targetPath);
             }
         }).catch(error => {
             if (error.response && error.response.status === 403) {
@@ -101,4 +103,3 @@ const LoginComponent = () => {
 }
 
 export default LoginComponent
-
