@@ -30,8 +30,10 @@ const LoginComponent = () => {
             if (reset.data) {
                 navigate(`/resetpassword/${persona.id}`)
             } else {
-                const targetPath = location.pathname && location.pathname !== '/' ? location.pathname : '/home';
-                navigate(targetPath);
+                const savedRedirect = window.sessionStorage.getItem('postLoginRedirect');
+                const targetPath = savedRedirect || (location.pathname && location.pathname !== '/' ? location.pathname : '/home');
+                window.sessionStorage.removeItem('postLoginRedirect');
+                navigate(targetPath, { replace: true });
             }
         }).catch(error => {
             if (error.response && error.response.status === 403) {

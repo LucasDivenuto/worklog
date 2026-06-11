@@ -4,6 +4,7 @@ import HeaderTrabajadorComponent from "./components/Headers/HeaderTrabajadorComp
 import HeaderJefeComponent from "./components/Headers/HeaderJefeComponent";
 import { BrowserRouter } from "react-router-dom";
 import { Route, Routes, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { useAuth } from "./context/AuthContext";
 import LoginComponent from "./components/LoginComponent";
 import LogoutComponent from "./components/LogoutComponent";
@@ -19,6 +20,15 @@ function MainApp() {
   const { personaRolLoggeado } = useAuth();
   const location = useLocation();
   const isChangePasswordPage = location.pathname.includes("/resetpassword/");
+
+  useEffect(() => {
+    if (
+      location.pathname.startsWith("/jornalQr/") &&
+      (window.localStorage.getItem("appJornalesToken") === null || !isValidToken())
+    ) {
+      window.sessionStorage.setItem("postLoginRedirect", location.pathname);
+    }
+  }, [location.pathname]);
 
   const renderRoutes = () => {
     switch (personaRolLoggeado.personaRol.rol.rol) {
