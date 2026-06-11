@@ -9,13 +9,15 @@ import ContainerPersonaFinderComponent from './ContainerPersonaFinderComponent';
 
 
 
-export const JornalEditorFormComponent = ({ isModify, obras, persona, fechaJornal, horaComienzo, horaFin, tipoJornal,
+export const JornalEditorFormComponent = ({ isModify, obras, persona, fechaJornal, horaComienzo, horaFin, horaInicioDescanso, horaFinDescanso, tipoJornal,
     onSeleccionarObra, onSeleccionarPersona, onSeleccionarFecha, onSeleccionarHoraComienzo,
-    onSeleccionarHoraFin, onSeleccionarTipo, onSeleccionarMotivo, onSeleccionarOtroMotivo }) => {
+    onSeleccionarHoraFin, onSeleccionarHoraInicioDescanso, onSeleccionarHoraFinDescanso, onSeleccionarTipo, onSeleccionarMotivo, onSeleccionarOtroMotivo }) => {
 
     const [radioSelection, setRadioSelection] = useState('')
     const [internalTimeStart, setInternalTimeStart] = useState(horaComienzo);
     const [internalTimeEnd, setInternalTimeEnd] = useState(horaFin);
+    const [internalBreakStart, setInternalBreakStart] = useState(horaInicioDescanso);
+    const [internalBreakEnd, setInternalBreakEnd] = useState(horaFinDescanso);
     const [dayOfTheWeek, setDayOfTheWeek] = useState();
     // Array of weekdays
     const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -55,6 +57,26 @@ export const JornalEditorFormComponent = ({ isModify, obras, persona, fechaJorna
         onSeleccionarHoraFin(end)
     }
 
+    const handleSetHoraInicioDescanso = (start) => {
+        setInternalBreakStart(start)
+        onSeleccionarHoraInicioDescanso(start)
+    }
+
+    const handleSetHoraFinDescanso = (end) => {
+        setInternalBreakEnd(end)
+        onSeleccionarHoraFinDescanso(end)
+    }
+
+    const handleDescansoEstandar = () => {
+        handleSetHoraInicioDescanso('12:00')
+        handleSetHoraFinDescanso('12:30')
+    }
+
+    const handleSinDescanso = () => {
+        handleSetHoraInicioDescanso(null)
+        handleSetHoraFinDescanso(null)
+    }
+
     const handleSeleccionarMotivo = (motivo) => {
         setMotivo(motivo)
         onSeleccionarMotivo(motivo)
@@ -71,6 +93,14 @@ export const JornalEditorFormComponent = ({ isModify, obras, persona, fechaJorna
     useEffect(() => {
         setInternalTimeEnd(horaFin)
     }, [horaFin])
+
+    useEffect(() => {
+        setInternalBreakStart(horaInicioDescanso)
+    }, [horaInicioDescanso])
+
+    useEffect(() => {
+        setInternalBreakEnd(horaFinDescanso)
+    }, [horaFinDescanso])
 
     useEffect(() => {
         !isModify && setRadioSelection('radio_all_day')
@@ -274,9 +304,45 @@ export const JornalEditorFormComponent = ({ isModify, obras, persona, fechaJorna
                             )}
 
                         </div>
-                    )}
+	                    )}
 
-                    {/*--------- HORA FIN--------------------------- */}
+	                    {tipoJornal?.id === 1 && (
+	                        <div className='form-group my-5'>
+	                            <label className='form-label me-4 labelCard fs-5'>Descanso</label>
+	                            <button type="button" className="btn btn-outline-dark mx-1 my-1" onClick={handleDescansoEstandar}>
+	                                Horario estándar 12:00 - 12:30
+	                            </button>
+	                            <button type="button" className="btn btn-outline-secondary mx-1 my-1" onClick={handleSinDescanso}>
+	                                Sin descanso
+	                            </button>
+	                            <div className="row mt-3">
+	                                <div className="col-md-6 mb-3">
+	                                    <label className='form-label me-4 labelCard'>Inicio descanso</label>
+	                                    <TimePicker
+	                                        value={internalBreakStart}
+	                                        onChange={handleSetHoraInicioDescanso}
+	                                        className='form-control'
+	                                        timeFormat='HH:mm'
+	                                        locale='es'
+	                                        disableClock={true}
+	                                    />
+	                                </div>
+	                                <div className="col-md-6 mb-3">
+	                                    <label className='form-label me-4 labelCard'>Fin descanso</label>
+	                                    <TimePicker
+	                                        value={internalBreakEnd}
+	                                        onChange={handleSetHoraFinDescanso}
+	                                        className='form-control'
+	                                        timeFormat='HH:mm'
+	                                        locale='es'
+	                                        disableClock={true}
+	                                    />
+	                                </div>
+	                            </div>
+	                        </div>
+	                    )}
+
+	                    {/*--------- HORA FIN--------------------------- */}
 
                     <div className='form-group my-5'>
                         <label className='form-label me-4 labelCard fs-5'>Hora fin</label>

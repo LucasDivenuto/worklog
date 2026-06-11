@@ -1,6 +1,7 @@
 package com.worklog.backend.controller;
 
 import com.worklog.backend.dto.JornalDataRequestDTO;
+import com.worklog.backend.dto.JornalMarcajeResponseDTO;
 import com.worklog.backend.exception.JornalNotFoundException;
 import com.worklog.backend.exception.JornalNotSavedException;
 import com.worklog.backend.model.Jornal;
@@ -84,10 +85,18 @@ public class JornalController {
 
     @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/jornalQr")
-    public ResponseEntity<Object> jornalQr(@Valid @RequestBody Map<String, Long> body) {
-        Long obraID = body.get("obraID");
-        Jornal savedJornal = jornalService.saveJornalQr(obraID);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedJornal);
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'JEFE_OBRA', 'TRABAJADOR')")
+    public ResponseEntity<JornalMarcajeResponseDTO> jornalQr(@RequestBody Map<String, Object> body) {
+        Long obraID = body.get("obraID") instanceof Number n ? n.longValue() : Long.valueOf(body.get("obraID").toString());
+        String accion = body.get("accion") != null ? body.get("accion").toString() : null;
+        JornalMarcajeResponseDTO response = jornalService.saveJornalQr(obraID, accion);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/jornal/estadoMarcaje/{obraId}")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'JEFE_OBRA', 'TRABAJADOR')")
+    public ResponseEntity<JornalMarcajeResponseDTO> getEstadoMarcaje(@PathVariable Long obraId) {
+        return ResponseEntity.ok(jornalService.getEstadoMarcajeQr(obraId));
     }
 
     @GetMapping("/jornal/jornalByPersona/{personaId}")
@@ -124,6 +133,11 @@ public class JornalController {
         return new ResponseEntity<>(jornales, HttpStatus.OK);
     }
 
+    @PostMapping("/jornal/existsSinConfirmarEnFiltro")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'JEFE_OBRA', 'TRABAJADOR')")
+    public ResponseEntity<Boolean> existsSinConfirmarEnFiltro(@RequestBody JornalDataRequestDTO dto) {
+        return new ResponseEntity<>(jornalService.existsJornalesSinConfirmarConFiltro(dto), HttpStatus.OK);
+    }
 
     @GetMapping("/jornal/jornalNoConfirmado/{obraId}")
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'JEFE_OBRA')")

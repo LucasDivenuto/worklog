@@ -22,6 +22,8 @@ export const ContainerJornalEditorComponent = () => {
     const [fechaJornal, setFechaJornal] = useState();
     const [horaComienzo, setHoraComienzo] = useState(format(new Date(), 'HH:mm'));
     const [horaFin, setHoraFin] = useState();
+    const [horaInicioDescanso, setHoraInicioDescanso] = useState('12:00');
+    const [horaFinDescanso, setHoraFinDescanso] = useState('12:30');
     const [tipoJornal, setTipoJornal] = useState();
     const [persona, setPersona] = useState();
 
@@ -33,6 +35,8 @@ export const ContainerJornalEditorComponent = () => {
     const [confirmado, setConfirmado] = useState(false)
     const [mensajeError, setMensajeError] = useState();
 
+    const formatBackendTime = (value) => format(new Date(value), 'HH:mm');
+
 
 
   /*--------SETEO INICIAL DEL FORM ------------------ */
@@ -43,13 +47,15 @@ export const ContainerJornalEditorComponent = () => {
                 setObras([res.data.obra])
                 setObraSeleccionada(res.data.obra)
                 setFechaJornal(res.data.fechaJornal)
-                setHoraComienzo(format(res.data.horaComienzo, 'HH:mm'))
+                setHoraComienzo(formatBackendTime(res.data.horaComienzo))
                 setPersona(res.data.persona)
                 setTipoJornal(res.data.tipoJornal)
                 setModificado(res.data.modificado)
                 setConfirmado(res.data.confirmado)
+                setHoraInicioDescanso(res.data.horaInicioDescanso ? formatBackendTime(res.data.horaInicioDescanso) : null)
+                setHoraFinDescanso(res.data.horaFinDescanso ? formatBackendTime(res.data.horaFinDescanso) : null)
                 if (res.data.horaFin) {
-                    setHoraFin(format(res.data.horaFin, 'HH:mm'))
+                    setHoraFin(formatBackendTime(res.data.horaFin))
                 }
             }).catch(e => {
                 e.response?.data ? setMensajeError(e.response.data):
@@ -66,6 +72,8 @@ export const ContainerJornalEditorComponent = () => {
             }
             setFechaJornal(new Date())
             setHoraComienzo(format(new Date(), 'HH:mm'))
+            setHoraInicioDescanso('12:00')
+            setHoraFinDescanso('12:30')
             setTipoJornal({ id: 1 })
         }
     }, [id])
@@ -97,8 +105,8 @@ export const ContainerJornalEditorComponent = () => {
         e.preventDefault();
 
         try {
-            const fechaFormatted= format(fechaJornal, 'yyyy-MM-dd')
-            await JornalService.validateDatos(persona, obraSeleccionada, fechaFormatted, horaComienzo, horaFin, tipoJornal, modificado, confirmado)
+            const fechaFormatted = typeof fechaJornal === 'string' ? fechaJornal : format(fechaJornal, 'yyyy-MM-dd')
+            await JornalService.validateDatos(persona, obraSeleccionada, fechaFormatted, horaComienzo, horaFin, tipoJornal, modificado, confirmado, horaInicioDescanso, horaFinDescanso)
         } catch (error) {
             if (error.response) {
                 // Handle server-side errors
@@ -113,10 +121,23 @@ export const ContainerJornalEditorComponent = () => {
 
 
         // Modify Update jornal
-        const fechaFormatted= format(fechaJornal, 'yyyy-MM-dd')
+        const fechaFormatted = typeof fechaJornal === 'string' ? fechaJornal : format(fechaJornal, 'yyyy-MM-dd')
         const horaComienzoFormatted = fechaFormatted + 'T' + horaComienzo;
         const horaFinFormatted = fechaFormatted + 'T' + horaFin;
-        const jornal = { persona, obra:obraSeleccionada, fechaJornal:fechaFormatted, horaComienzo: horaComienzoFormatted, horaFin: horaFinFormatted, tipoJornal, modificado, confirmado }
+        const horaInicioDescansoFormatted = horaInicioDescanso ? fechaFormatted + 'T' + horaInicioDescanso : null;
+        const horaFinDescansoFormatted = horaFinDescanso ? fechaFormatted + 'T' + horaFinDescanso : null;
+        const jornal = {
+            persona,
+            obra:obraSeleccionada,
+            fechaJornal:fechaFormatted,
+            horaComienzo: horaComienzoFormatted,
+            horaFin: horaFinFormatted,
+            horaInicioDescanso: horaInicioDescansoFormatted,
+            horaFinDescanso: horaFinDescansoFormatted,
+            tipoJornal,
+            modificado,
+            confirmado
+        }
         if (id) {
             var motivoDefinitivo = '';
             if (motivo === 'Otros') { motivoDefinitivo = otroMotivo; } else { motivoDefinitivo = motivo }
@@ -170,6 +191,17 @@ export const ContainerJornalEditorComponent = () => {
 
     }
 
+    const handleSeleccionarTipo = (tipo) => {
+        setTipoJornal(tipo);
+        if (tipo?.id !== 1) {
+            setHoraInicioDescanso(null);
+            setHoraFinDescanso(null);
+        } else if (!isModify && !horaInicioDescanso && !horaFinDescanso) {
+            setHoraInicioDescanso('12:00');
+            setHoraFinDescanso('12:30');
+        }
+    }
+
 
     const handleCancelar = () => {
         navigate('/home')
@@ -189,13 +221,17 @@ export const ContainerJornalEditorComponent = () => {
                 fechaJornal={fechaJornal}
                 horaComienzo={horaComienzo}
                 horaFin={horaFin}
+                horaInicioDescanso={horaInicioDescanso}
+                horaFinDescanso={horaFinDescanso}
                 tipoJornal={tipoJornal}
                 onSeleccionarObra={handleSelectObra}
                 onSeleccionarPersona={(p) => setPersona(p)}
                 onSeleccionarFecha={(f) => setFechaJornal(f)}
                 onSeleccionarHoraComienzo={(hc) => setHoraComienzo(hc)}
                 onSeleccionarHoraFin={(hf) => setHoraFin(hf)}
-                onSeleccionarTipo={(t) => setTipoJornal(t)}
+                onSeleccionarHoraInicioDescanso={(hid) => setHoraInicioDescanso(hid)}
+                onSeleccionarHoraFinDescanso={(hfd) => setHoraFinDescanso(hfd)}
+                onSeleccionarTipo={handleSeleccionarTipo}
                 onSeleccionarMotivo={(m) => setMotivo(m)}
                 onSeleccionarOtroMotivo={(om) => setOtroMotivo(om)}
             />

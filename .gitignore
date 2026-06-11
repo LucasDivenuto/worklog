@@ -1,0 +1,12 @@
+# Backend build artifacts
+backend/*.jar
+backend/*.tar
+
+# Maven target
+backend/target/
+
+# Node build
+frontend/build/
+
+# Env files (ya lo tenés probablemente)
+frontend/.env.*

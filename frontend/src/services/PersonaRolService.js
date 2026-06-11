@@ -1,41 +1,33 @@
-import axios from "axios"
-import { initAxiosInterceptors } from "../helpers/AuthHelper"
+import api from "../api";
 
-const PERSONA_ROL_BASE_REST_API_URL = "http://localhost:8080/personaRol"
-//const PERSONA_ROL_BASE_REST_API_URL = "http://3.233.21.8:8080/personaRol"
+class PersonaRolService {
+  getAllPersonaRoles() {
+    return api.get("/personaRol/es");
+  }
 
-//initAxiosInterceptors();
+  createPersonaRol(personaRol) {
+    return api.post("/personaRol", personaRol);
+  }
 
+  getPersonaRolById(personaRolId) {
+    return api.get(`/personaRol/${personaRolId}`);
+  }
 
-class PersonaRolService{
+  updatePersonaRol(personaRolId, personaRol) {
+    return api.put(`/personaRol/${personaRolId}`, personaRol);
+  }
 
-    getAllPersonaRoles(){
-        return axios.get(PERSONA_ROL_BASE_REST_API_URL + 'es')
-    }
+  deletePersonaRol(personaRolId) {
+    return api.delete(`/personaRol/${personaRolId}`);
+  }
 
-    createPersonaRol(personaRol){
-        return axios.post(PERSONA_ROL_BASE_REST_API_URL, personaRol)
-    }
+  getPersonaRolActivoByCI(cedula) {
+    return api.get(`/personaRol/personaRolByCI/${cedula}`);
+  }
 
-    getPersonaRolById(personaRolId){
-        return axios.get(PERSONA_ROL_BASE_REST_API_URL +  '/' + personaRolId)
-    }
-
-    updatePersonaRol(personaRolId, personaRol){
-        return axios.put(PERSONA_ROL_BASE_REST_API_URL + '/' + personaRolId, personaRol)
-    }
-
-    deletePersonaRol(personaRolId){
-        return axios.delete((PERSONA_ROL_BASE_REST_API_URL +  '/' + personaRolId))
-    }
-    
-    getPersonaRolActivoByCI(cedula){
-        return axios.get(PERSONA_ROL_BASE_REST_API_URL + '/personaRolByCI/' + cedula)
-    }
-
-    getEsJefeObraByPersonaId(personaId){
-        return axios.get(PERSONA_ROL_BASE_REST_API_URL + '/esJefe/' + personaId)
-    }
+  getEsJefeObraByPersonaId(personaId) {
+    return api.get(`/personaRol/esJefe/${personaId}`);
+  }
 }
-// eslint-disable-next-line import/no-anonymous-default-export
+
 export default new PersonaRolService();

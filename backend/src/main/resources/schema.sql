@@ -100,6 +100,8 @@ CREATE TABLE IF NOT EXISTS jornal
     fecha_jornal  date   not null,
     hora_comienzo datetime(6)   not null,
     hora_fin datetime(6)    null,
+    hora_inicio_descanso datetime(6) null,
+    hora_fin_descanso datetime(6) null,
     modificado      bit         not null,
     tipo_jornal      bigint      not null,
     confirmado bit not null,
@@ -110,6 +112,12 @@ CREATE TABLE IF NOT EXISTS jornal
     CONSTRAINT FK_JORNAL_TIPO_JORNAL
     foreign key (tipo_jornal) references tipo_jornal (id)
     );
+
+CREATE TABLE IF NOT EXISTS schema_migration (
+    version     VARCHAR(100)  NOT NULL PRIMARY KEY,
+    description VARCHAR(255)  NULL,
+    applied_at  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
 CREATE TABLE IF NOT EXISTS modificacion(
     id          bigint auto_increment primary key,

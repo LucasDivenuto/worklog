@@ -17,6 +17,10 @@ public class Modificacion {
     @Transient
     public static final String CAMPO_HORA_FIN="HORA_FIN";
     @Transient
+    public static final String CAMPO_HORA_INICIO_DESCANSO="HORA_INICIO_DESCANSO";
+    @Transient
+    public static final String CAMPO_HORA_FIN_DESCANSO="HORA_FIN_DESCANSO";
+    @Transient
     public static final String JORNAL_ELIMINADO="JORNAL_ELIMINADO";
     @Transient
     public static final String CAMPO_OBRA = "OBRA";

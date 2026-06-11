@@ -1,0 +1,25 @@
+version: "3.9"
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysql-Worklog
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootmysql       # contraseña del root
+      MYSQL_DATABASE: worklog             # crea automáticamente esta base
+      MYSQL_USER: worklog_user            # usuario de app
+      MYSQL_PASSWORD: worklog_pass        # contraseña del usuario
+    ports:
+      - "3309:3306"   # expone el puerto 3306 del contenedor como 3309 en tu máquina
+    volumes:
+      - ./mysql_data:/var/lib/mysql   # guarda datos en carpeta local para que no se pierdan
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: phpmyadmin-Worklog
+    restart: always
+    ports:
+      - "8081:80"   # accedés desde localhost:8081
+    environment:
+      PMA_HOST: mysql                # le decimos que se conecte al servicio "mysql" del compose
+      MYSQL_ROOT_PASSWORD: rootmysql # credenciales para entrar

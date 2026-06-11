@@ -37,6 +37,13 @@ const DatoJornalComponent = ({ jornal, adminView, jefeView, confirmar, onError, 
         return `${hours}:${minutes}`;
     };
 
+    const formatOptionalTime = (timestamp) => {
+        if (!timestamp) {
+            return '--';
+        }
+        return formatTime(timestamp);
+    };
+
     const getClassName = () => {
         if (jornal.tipoJornal.id === 1) return 'table-light';
         if (jornal.tipoJornal.id === 2) return 'table-primary';
@@ -147,6 +154,12 @@ const DatoJornalComponent = ({ jornal, adminView, jefeView, confirmar, onError, 
                     )}
                 </td>
 
+                {/*----- INICIO DESCANSO -------- */}
+                <td className="text-center">{formatOptionalTime(jornal.horaInicioDescanso)}</td>
+
+                {/*----- FIN DESCANSO -------- */}
+                <td className="text-center">{formatOptionalTime(jornal.horaFinDescanso)}</td>
+
                 {/*----- HORA FIN -------- */}
                 <td className="text-center">
                     {jornal.horaFin && (
@@ -215,7 +228,6 @@ const DatoJornalComponent = ({ jornal, adminView, jefeView, confirmar, onError, 
 };
 
 export default DatoJornalComponent;
-
 
 
 

@@ -12,6 +12,8 @@ public interface JornalRepositoryCustom {
     Optional<Jornal[]> findJornalesByRangoDeFechasObraPersona(LocalDate startDate, LocalDate endDate, Obra obra, Persona persona);
     Optional<Jornal[]> findJornalesByFechaObraPersona (LocalDate fecha, Obra obra, Persona persona);
     Optional<Jornal[]> findJornalesByFechaObraPersonaConfirmados (LocalDate fecha, Obra obra, Persona persona);
-    Optional<Jornal[]> findJornalesByFechasObrasyPersonas (LocalDate startDate, LocalDate endDate, List<Long> obrasID, List<Long> personasID);
+    Optional<Jornal[]> findJornalesByFechasObrasyPersonas(LocalDate startDate, LocalDate endDate, List<Long> obrasID, List<Long> personasID, boolean soloSinConfirmar);
+
+    boolean existsJornalesSinConfirmarEnRango(LocalDate startDate, LocalDate endDate, List<Long> obrasID, List<Long> personasID);
 
 }

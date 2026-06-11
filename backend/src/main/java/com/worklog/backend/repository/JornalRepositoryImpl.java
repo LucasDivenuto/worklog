@@ -94,11 +94,15 @@ public class JornalRepositoryImpl implements JornalRepositoryCustom{
     }
 
     @Override
-    public Optional<Jornal[]> findJornalesByFechasObrasyPersonas(LocalDate startDate, LocalDate endDate, List<Long> obrasID, List<Long> personasID) {
+    public Optional<Jornal[]> findJornalesByFechasObrasyPersonas(LocalDate startDate, LocalDate endDate, List<Long> obrasID, List<Long> personasID, boolean soloSinConfirmar) {
         StringBuilder sql = new StringBuilder("SELECT * FROM jornal WHERE ");
 
         sql.append(" fecha_jornal >= :startDate");
         sql.append(" AND fecha_jornal <= :endDate");
+
+        if (soloSinConfirmar) {
+            sql.append(" AND confirmado = 0");
+        }
 
         if (personasID != null && !personasID.isEmpty()) {
             sql.append(" AND persona_id IN (:personasID)");
@@ -126,5 +130,28 @@ public class JornalRepositoryImpl implements JornalRepositoryCustom{
         return result.isEmpty() ? Optional.empty() : Optional.of(result.toArray(new Jornal[0]));
     }
 
+    @Override
+    public boolean existsJornalesSinConfirmarEnRango(LocalDate startDate, LocalDate endDate, List<Long> obrasID, List<Long> personasID) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM jornal WHERE confirmado = 0");
+        sql.append(" AND fecha_jornal >= :startDate");
+        sql.append(" AND fecha_jornal <= :endDate");
+        if (obrasID != null && !obrasID.isEmpty()) {
+            sql.append(" AND obra_id IN (:obrasID)");
+        }
+        if (personasID != null && !personasID.isEmpty()) {
+            sql.append(" AND persona_id IN (:personasID)");
+        }
+        Query query = entityManager.createNativeQuery(sql.toString());
+        query.setParameter("startDate", startDate);
+        query.setParameter("endDate", endDate);
+        if (obrasID != null && !obrasID.isEmpty()) {
+            query.setParameter("obrasID", obrasID);
+        }
+        if (personasID != null && !personasID.isEmpty()) {
+            query.setParameter("personasID", personasID);
+        }
+        Object single = query.getSingleResult();
+        return ((Number) single).longValue() > 0;
+    }
 
 }
