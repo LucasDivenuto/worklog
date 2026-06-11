@@ -139,17 +139,21 @@ export const QrJornalComponent = () => {
                                         {estadoMarcaje === 'EN_DESCANSO' && 'Estás en descanso.'}
                                     </p>
                                     <div className="d-grid gap-2">
-                                        {accionesPermitidas.map((accion) => (
-                                            <button
-                                                key={accion}
-                                                type="button"
-                                                className={`btn ${accion === 'SALIDA_JORNADA' ? 'btn-danger' : 'btn-primary'}`}
-                                                disabled={submitting}
-                                                onClick={() => ejecutarAccion(accion)}
-                                            >
-                                                {ACCION_LABELS[accion] || accion}
-                                            </button>
-                                        ))}
+                                        {accionesPermitidas.length > 0 ? (
+                                            accionesPermitidas.map((accion) => (
+                                                <button
+                                                    key={accion}
+                                                    type="button"
+                                                    className={`btn ${accion === 'SALIDA_JORNADA' ? 'btn-danger' : 'btn-primary'}`}
+                                                    disabled={submitting}
+                                                    onClick={() => ejecutarAccion(accion)}
+                                                >
+                                                    {ACCION_LABELS[accion] || accion}
+                                                </button>
+                                            ))
+                                        ) : (
+                                            <p className="text-muted mb-0">No hay acciones disponibles para este jornal.</p>
+                                        )}
                                     </div>
                                 </>
                             )}
