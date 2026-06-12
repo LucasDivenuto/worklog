@@ -1,11 +1,15 @@
 import { Link } from "react-router-dom";
+import ClientLogoGrid from "../components/ClientLogoGrid.jsx";
 import SectionHeader from "../components/SectionHeader.jsx";
 import SiteImage from "../components/SiteImage.jsx";
 import {
   capabilities,
+  industrialClients,
   industrialServices,
+  technicalWhatsappUrl,
+  tileSalesWhatsappUrl,
   products,
-  whatsappUrl,
+  tileClients,
 } from "../siteData.js";
 
 export default function HomePage() {
@@ -20,8 +24,8 @@ export default function HomePage() {
             industriales con foco en durabilidad, cumplimiento y operacion real.
           </p>
           <div className="actions">
-            <a className="button" href={whatsappUrl}>
-              Solicitar presupuesto
+            <a className="button" href={tileSalesWhatsappUrl}>
+              Consultar por baldosas
             </a>
             <Link className="button secondary" to="/industria">
               Ver soluciones industriales
@@ -64,6 +68,14 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="content-band muted">
+        <SectionHeader eyebrow="Clientes" title="Barracas que confian en nuestras baldosas">
+          Proveemos baldosas de hormigon para empresas que necesitan
+          continuidad de suministro, calidad constante y respuesta comercial.
+        </SectionHeader>
+        <ClientLogoGrid clients={tileClients} />
+      </section>
+
       <section className="feature-section">
         <SiteImage
           src="/images/industria/galpon-industrial-interior.jpg"
@@ -87,6 +99,14 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="content-band">
+        <SectionHeader eyebrow="Obras industriales" title="Empresas que confiaron en nuestra ejecucion">
+          Trabajos de infraestructura, mantenimiento y soluciones industriales
+          para plantas, frigorificos y empresas operativas.
+        </SectionHeader>
+        <ClientLogoGrid clients={industrialClients} />
+      </section>
+
       <section className="content-band muted">
         <SectionHeader eyebrow="Capacidades" title="Fabricacion + ejecucion">
           Un mismo equipo para producir elementos de hormigon y llevar la obra
@@ -104,12 +124,17 @@ export default function HomePage() {
       <section className="cta-section">
         <h2>Conversemos sobre tu proyecto.</h2>
         <p>
-          Contanos que necesitas fabricar, construir, ampliar o reparar. Te
-          respondemos por WhatsApp.
+          Contanos si necesitas baldosas, construir, ampliar o reparar. Te
+          respondemos por el canal correspondiente.
         </p>
-        <a className="button" href={whatsappUrl}>
-          Contactar por WhatsApp
-        </a>
+        <div className="actions centered-actions">
+          <a className="button" href={tileSalesWhatsappUrl}>
+            Ventas de baldosas
+          </a>
+          <a className="button secondary" href={technicalWhatsappUrl}>
+            Departamento tecnico
+          </a>
+        </div>
       </section>
     </>
   );

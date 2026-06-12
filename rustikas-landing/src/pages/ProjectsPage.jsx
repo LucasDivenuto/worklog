@@ -1,7 +1,13 @@
+import ClientLogoGrid from "../components/ClientLogoGrid.jsx";
 import SectionHeader from "../components/SectionHeader.jsx";
 import SiteImage from "../components/SiteImage.jsx";
 import HorizontalCarousel from "../components/HorizontalCarousel.jsx";
-import { projectGallery, projectTypes, whatsappUrl } from "../siteData.js";
+import {
+  industrialClients,
+  projectGallery,
+  projectTypes,
+  technicalWhatsappUrl,
+} from "../siteData.js";
 
 export default function ProjectsPage() {
   return (
@@ -60,10 +66,18 @@ export default function ProjectsPage() {
         </HorizontalCarousel>
       </section>
 
+      <section className="content-band">
+        <SectionHeader eyebrow="Clientes" title="Empresas para las que ejecutamos obras">
+          Obras, ampliaciones y mantenimiento para empresas que requieren
+          respuesta tecnica y ejecucion responsable.
+        </SectionHeader>
+        <ClientLogoGrid clients={industrialClients} />
+      </section>
+
       <section className="cta-section">
         <h2>Queres consultar por una obra similar?</h2>
         <p>Envianos fotos, medidas o una descripcion del trabajo por WhatsApp.</p>
-        <a className="button" href={whatsappUrl}>
+        <a className="button" href={technicalWhatsappUrl}>
           Enviar consulta
         </a>
       </section>

@@ -1,3 +1,4 @@
+import ClientLogoGrid from "../components/ClientLogoGrid.jsx";
 import SectionHeader from "../components/SectionHeader.jsx";
 import SiteImage from "../components/SiteImage.jsx";
 import HorizontalCarousel from "../components/HorizontalCarousel.jsx";
@@ -5,7 +6,8 @@ import {
   catalogModels,
   productGallery,
   products,
-  whatsappUrl,
+  tileClients,
+  tileSalesWhatsappUrl,
 } from "../siteData.js";
 
 export default function ProductsPage() {
@@ -21,8 +23,8 @@ export default function ProductsPage() {
           </p>
         </div>
         <SiteImage
-          src="/images/productos/baldosas-tactiles-accesibilidad.jpg"
-          alt="Baldosas tactiles y modelos especiales de hormigon"
+          src="/images/productos/piso-baldosas-exterior-hero.jpg"
+          alt="Piso exterior terminado con baldosas de hormigon Rustikas"
         />
       </section>
 
@@ -64,10 +66,21 @@ export default function ProductsPage() {
             peatonales por su formato practico, resistencia y terminacion.
             Esta homologada por la IMM y ensayada en la Facultad de Ingenieria.
           </p>
-          <a className="button" href={whatsappUrl}>
+          <a className="button" href={tileSalesWhatsappUrl}>
             Consultar por 9 panes gris
           </a>
         </div>
+      </section>
+
+      <section className="content-band">
+        <SectionHeader
+          eyebrow="Clientes de baldosas"
+          title="Suministro para barracas y obras con demanda continua"
+        >
+          Nuestros modelos de baldosas son elegidos por empresas que trabajan
+          con volumen, reposicion y obras peatonales.
+        </SectionHeader>
+        <ClientLogoGrid clients={tileClients} />
       </section>
 
       <section className="feature-section reverse">
@@ -79,7 +92,7 @@ export default function ProductsPage() {
             circulaciones, espacios comunes y obras que requieren piezas
             resistentes y faciles de mantener.
           </p>
-          <a className="button" href={whatsappUrl}>
+          <a className="button" href={tileSalesWhatsappUrl}>
             Consultar disponibilidad
           </a>
         </div>
