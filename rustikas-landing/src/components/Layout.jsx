@@ -1,5 +1,10 @@
-import { NavLink } from "react-router-dom";
-import { whatsappUrl, worklogUrl } from "../siteData.js";
+import { useState } from "react";
+import { Link, NavLink } from "react-router-dom";
+import {
+  technicalWhatsappUrl,
+  tileSalesWhatsappUrl,
+  worklogUrl,
+} from "../siteData.js";
 
 const navItems = [
   { to: "/", label: "Inicio" },
@@ -11,34 +16,59 @@ const navItems = [
 ];
 
 export default function Layout({ children }) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const closeMenu = () => setIsMenuOpen(false);
+
   return (
     <>
       <header className="site-header">
-        <a className="brand" href="/">
+        <Link className="brand" to="/" onClick={closeMenu}>
           <img
             className="brand-logo"
-            src="/images/brand/logo-rustikas-negro.png"
+            src="/images/brand/logo-rustikas-color.jpg"
             alt="Rustikas"
           />
-        </a>
-        <nav className="main-nav" aria-label="Navegacion principal">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => (isActive ? "active" : undefined)}
+        </Link>
+        <button
+          className="menu-toggle"
+          type="button"
+          aria-expanded={isMenuOpen}
+          aria-controls="main-navigation"
+          aria-label="Abrir menu"
+          onClick={() => setIsMenuOpen((current) => !current)}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+        <div
+          className={`header-menu ${isMenuOpen ? "is-open" : ""}`}
+          id="main-navigation"
+        >
+          <nav className="main-nav" aria-label="Navegacion principal">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={closeMenu}
+                className={({ isActive }) => (isActive ? "active" : undefined)}
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+          <div className="header-actions">
+            <a className="ghost-link" href={worklogUrl}>
+              Ingresar
+            </a>
+            <Link
+              className="button button-small"
+              to="/contacto"
+              onClick={closeMenu}
             >
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="header-actions">
-          <a className="ghost-link" href={worklogUrl}>
-            Ingresar
-          </a>
-          <a className="button button-small" href={whatsappUrl}>
-            WhatsApp
-          </a>
+              WhatsApp
+            </Link>
+          </div>
         </div>
       </header>
       <main>{children}</main>
@@ -52,7 +82,8 @@ export default function Layout({ children }) {
           <p>Fabricacion propia y ejecucion de obra en un solo equipo.</p>
         </div>
         <div className="footer-links">
-          <a href={whatsappUrl}>Consultar por WhatsApp</a>
+          <a href={tileSalesWhatsappUrl}>Ventas de baldosas</a>
+          <a href={technicalWhatsappUrl}>Departamento tecnico</a>
           <a href={worklogUrl}>Ingresar a WorkLog</a>
         </div>
       </footer>

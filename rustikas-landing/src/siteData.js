@@ -1,10 +1,18 @@
-export const whatsappNumber = "59895232178";
+export const tileSalesWhatsappNumber = "59894941396";
+export const technicalWhatsappNumber = "59894509299";
 
-export const whatsappMessage =
-  "Hola Rustikas, quiero consultar por productos de hormigon o soluciones industriales.";
+export const tileSalesWhatsappMessage =
+  "Hola Rustikas, quiero consultar por baldosas de hormigon.";
 
-export const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-  whatsappMessage
+export const technicalWhatsappMessage =
+  "Hola Rustikas, quiero consultar por una obra o solucion industrial.";
+
+export const tileSalesWhatsappUrl = `https://wa.me/${tileSalesWhatsappNumber}?text=${encodeURIComponent(
+  tileSalesWhatsappMessage
+)}`;
+
+export const technicalWhatsappUrl = `https://wa.me/${technicalWhatsappNumber}?text=${encodeURIComponent(
+  technicalWhatsappMessage
 )}`;
 
 export const worklogUrl = "https://worklog.rustikas.com.uy";
@@ -133,6 +141,52 @@ export const catalogModels = [
     description: "Modelo lineal en color amarillo para usos especiales.",
     image: "/images/productos/catalogo-lineal-amarilla.jpg",
     alt: "Baldosa lineal amarilla",
+  },
+];
+
+export const tileClients = [
+  {
+    name: "Barraca Garcia Baldi",
+    logo: "/images/clientes/baldosas/barraca-garcia-baldi.png",
+  },
+  {
+    name: "Barraca Difra",
+    logo: "/images/clientes/baldosas/barraca-difra.png",
+  },
+  {
+    name: "Barraca Uno",
+    logo: "/images/clientes/baldosas/barraca-uno.png",
+  },
+  {
+    name: "Barraca La Chacarita",
+    logo: "/images/clientes/baldosas/barraca-la-chacarita.jpg",
+  },
+  {
+    name: "Castro",
+    logo: "/images/clientes/baldosas/castro.png",
+  },
+];
+
+export const industrialClients = [
+  {
+    name: "Sarubbi",
+    logo: "/images/clientes/obras/sarubbi.jpg",
+  },
+  {
+    name: "Valymar",
+    logo: "/images/clientes/obras/valymar.webp",
+  },
+  {
+    name: "Schneck",
+    logo: "/images/clientes/obras/schneck.png",
+  },
+  {
+    name: "Aceros Paisano",
+    logo: "/images/clientes/obras/aceros-paisano.png",
+  },
+  {
+    name: "Sadenir",
+    logo: "/images/clientes/obras/sadenir.jpeg",
   },
 ];
 

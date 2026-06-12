@@ -1,10 +1,12 @@
+import ClientLogoGrid from "../components/ClientLogoGrid.jsx";
 import SectionHeader from "../components/SectionHeader.jsx";
 import SiteImage from "../components/SiteImage.jsx";
 import {
   capabilities,
+  industrialClients,
   industrialServices,
   projectTypes,
-  whatsappUrl,
+  technicalWhatsappUrl,
 } from "../siteData.js";
 
 export default function IndustryPage() {
@@ -68,6 +70,14 @@ export default function IndustryPage() {
         </div>
       </section>
 
+      <section className="content-band muted">
+        <SectionHeader eyebrow="Clientes industriales" title="Obras para empresas en operacion">
+          Experiencia en entornos productivos, logisticos y frigorificos donde
+          importan los tiempos, la coordinacion y la continuidad operativa.
+        </SectionHeader>
+        <ClientLogoGrid clients={industrialClients} />
+      </section>
+
       <section className="feature-section reverse">
         <SiteImage
           src="/images/industria/armado-pavimento-industrial.jpg"
@@ -80,7 +90,7 @@ export default function IndustryPage() {
             Ejecutamos superficies industriales considerando uso, cargas,
             circulacion, mantenimiento y continuidad operativa.
           </p>
-          <a className="text-link" href={whatsappUrl}>
+          <a className="text-link" href={technicalWhatsappUrl}>
             Consultar por pavimentos industriales
           </a>
         </div>
@@ -92,8 +102,8 @@ export default function IndustryPage() {
           Coordinemos una consulta para entender alcance, tiempos y
           requerimientos de operacion.
         </p>
-        <a className="button" href={whatsappUrl}>
-          Hablar por WhatsApp
+        <a className="button" href={technicalWhatsappUrl}>
+          Hablar con departamento tecnico
         </a>
       </section>
     </>
